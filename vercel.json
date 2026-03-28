@@ -2,7 +2,6 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "destination": "https://github.com/kenanmusali",
       "permanent": true
     }
   ]
