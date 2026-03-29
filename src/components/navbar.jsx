@@ -1,21 +1,50 @@
 import React, { useState, useEffect } from 'react'
-import LogoSvg from "../assets/svg/logo.svg"
-import LogoTextSvg from "../assets/svg/logo-text.svg"
 import MenuSvg from "../assets/svg/menu.svg"
 import CloseSvg from "../assets/svg/close.svg"
-import AzImg from "../assets/img/az_i18n.png"
-import bgSvg from "../assets/svg/bg-pattern.svg"
-import EnImg from "../assets/img/en_i18n.png"
-import AutoSvg from "../assets/svg/auto_theme.svg"
-import LightSvg from "../assets/svg/light_theme.svg"
-import DarkSvg from "../assets/svg/dark_theme.svg"
+import { useLanguage } from '../context/LanguageContext.jsx'
 
 const Navbar = () => {
-  const [lang, setLang] = useState("az")
+  const { language, setLanguage } = useLanguage();
   const [theme, setTheme] = useState("auto")
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024)
+  
+  const [logos, setLogos] = useState({})
+  const [icons, setIcons] = useState({})
+  const [navItems, setNavItems] = useState([])
+  const [mobileNavItems, setMobileNavItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchNavbarData = async () => {
+      try {
+        setLoading(true)
+        const timestamp = new Date().getTime()
+        const response = await fetch(`https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/refs/heads/main/src/data/navbar-data.json?_=${timestamp}`)
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch navbar data')
+        }
+        
+        const data = await response.json()
+        
+        if (data.logos) setLogos(data.logos)
+        if (data.icons) setIcons(data.icons)
+        if (data.navItems) setNavItems(data.navItems)
+        if (data.mobileNavItems) setMobileNavItems(data.mobileNavItems)
+        
+        setLoading(false)
+      } catch (err) {
+        setError(err.message)
+        setLoading(false)
+        console.error('Error fetching navbar:', err)
+      }
+    }
+
+    fetchNavbarData()
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,81 +66,34 @@ const Navbar = () => {
     }
   }, [])
 
-  const logoToShow = (!isDesktop || (isDesktop && scrolled)) ? LogoSvg : LogoTextSvg
+  const logoToShow = (!isDesktop || (isDesktop && scrolled)) ? logos.logo : logos.logoText
 
-  // 7x scroll with responsive block alignment
   const scrollFourTimes = (id) => {
     const section = document.getElementById(id)
     if (!section) return
 
-    // Clear any existing timeouts
     if (window.scrollTimeouts) {
       window.scrollTimeouts.forEach(timeout => clearTimeout(timeout))
     }
     
     window.scrollTimeouts = []
 
-    // Scroll 7 times
     for (let i = 0; i < 7; i++) {
       const timeoutId = setTimeout(() => {
         section.scrollIntoView({ 
           behavior: 'smooth', 
           block: window.innerWidth > 1024 ? 'end' : 'start'
         })
-        console.log(`Scroll ${i + 1} of 7`)
         
-        // On the LAST scroll (i === 6), if mobile, scroll UP 110px immediately after
         if (i === 6 && window.innerWidth < 1024) {
           setTimeout(() => {
             window.scrollBy({
               top: -110,
               behavior: 'smooth'
             })
-            console.log('Scrolling up 110px on mobile')
-          }, 50) // Just 50ms delay after the last scroll
+          }, 50)
         }
       }, i * 200)
-      
-      window.scrollTimeouts.push(timeoutId)
-    }
-
-    setMenuOpen(false)
-  }
-
-  const scrollFourTimesWithOffset = (id) => {
-    const section = document.getElementById(id)
-    if (!section) return
-
-    if (window.scrollTimeouts) {
-      window.scrollTimeouts.forEach(timeout => clearTimeout(timeout))
-    }
-    
-    window.scrollTimeouts = []
-
-    const offsets = [0, 50, 100, 150, 200, 250, 300]
-
-    for (let i = 0; i < 7; i++) {
-      const timeoutId = setTimeout(() => {
-        const elementPosition = section.getBoundingClientRect().top + window.pageYOffset
-        const offsetPosition = elementPosition - offsets[i]
-        
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        })
-        console.log(`Scroll ${i + 1} of 7 with offset ${offsets[i]}`)
-        
-        // On the LAST scroll (i === 6), if mobile, scroll UP 110px immediately after
-        if (i === 6 && window.innerWidth < 1024) {
-          setTimeout(() => {
-            window.scrollBy({
-              top: -110,
-              behavior: 'smooth'
-            })
-            console.log('Scrolling up 110px on mobile')
-          }, 50) // Just 50ms delay after the last scroll
-        }
-      }, i * 300)
       
       window.scrollTimeouts.push(timeoutId)
     }
@@ -123,7 +105,30 @@ const Navbar = () => {
     e.preventDefault()
     e.stopPropagation()
     scrollFourTimes(id)
-    // scrollFourTimesWithOffset(id) // optional alternative
+  }
+
+  const handleLanguageChange = (newLang) => {
+    setLanguage(newLang)
+  }
+
+  if (loading) {
+    return (
+      <div className="Navbar-Group">
+        <div className="loading-container">
+          <p>Loading navigation...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="Navbar-Group">
+        <div className="error-container">
+          <p>Error loading navigation: {error}</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -136,15 +141,16 @@ const Navbar = () => {
             setMenuOpen(!menuOpen)
           }}
         >
-          <img src={menuOpen ? CloseSvg : MenuSvg} alt="Menu" />
+          <img src={menuOpen ? icons.close : icons.menu} alt="Menu" />
           <p>MENU</p>
         </div>
 
         <div className="Navbar-Items Items-Left">
-          <p onClick={(e) => handleNavClick(e, 'about')}>About us</p>
-          <p onClick={(e) => handleNavClick(e, 'products')}>Products</p>
-          <p onClick={(e) => handleNavClick(e, 'blogs')}>Blogs</p>
-          <p onClick={(e) => handleNavClick(e, 'socials')}>Socials</p>
+          {navItems.map((item) => (
+            <p key={item.id} onClick={(e) => handleNavClick(e, item.sectionId)}>
+              {item.label[language]}
+            </p>
+          ))}
         </div>
 
         <p className="Navbar-Items Items-Center" onClick={(e) => handleNavClick(e, 'home')}>
@@ -154,27 +160,27 @@ const Navbar = () => {
         <div className="Navbar-Items Items-Right">
           <div className="Navbar-i18n">
             <img
-              src={AzImg}
+              src={icons.azFlag}
               onClick={(e) => {
                 e.stopPropagation()
-                setLang("az")
+                handleLanguageChange("az")
               }}
-              className={lang === "az" ? "lang-active" : "lang-inactive"}
+              className={language === "az" ? "lang-active" : "lang-inactive"}
               alt="AZ"
             />
             <img
-              src={EnImg}
+              src={icons.enFlag}
               onClick={(e) => {
                 e.stopPropagation()
-                setLang("en")
+                handleLanguageChange("en")
               }}
-              className={lang === "en" ? "lang-active" : "lang-inactive"}
+              className={language === "en" ? "lang-active" : "lang-inactive"}
               alt="EN"
             />
           </div>
           <div className="Navbar-Theme">
             <img
-              src={AutoSvg}
+              src={icons.autoTheme}
               onClick={(e) => {
                 e.stopPropagation()
                 setTheme("auto")
@@ -183,7 +189,7 @@ const Navbar = () => {
               alt="Auto"
             />
             <img
-              src={LightSvg}
+              src={icons.lightTheme}
               onClick={(e) => {
                 e.stopPropagation()
                 setTheme("light")
@@ -192,7 +198,7 @@ const Navbar = () => {
               alt="Light"
             />
             <img
-              src={DarkSvg}
+              src={icons.darkTheme}
               onClick={(e) => {
                 e.stopPropagation()
                 setTheme("dark")
@@ -207,37 +213,38 @@ const Navbar = () => {
       {/* Mobile Menu */}
       <div className={`mobile-menu-fixed ${menuOpen ? 'open' : ''}`}>
         <div className="mobile-menu-content">
-          <p onClick={(e) => handleNavClick(e, 'about')}>About us</p>
-          <p onClick={(e) => handleNavClick(e, 'home')}>Products</p>
-          <p onClick={(e) => handleNavClick(e, 'projects')}>Blogs</p>
-          <p onClick={(e) => handleNavClick(e, 'socials')}>Socials</p>
+          {mobileNavItems.map((item) => (
+            <p key={item.id} onClick={(e) => handleNavClick(e, item.sectionId)}>
+              {item.label[language]}
+            </p>
+          ))}
 
           <div className="mobile-menu-bottom">
             <div className="Navbar-i18n">
               <img
-                src={AzImg}
+                src={icons.azFlag}
                 onClick={(e) => {
                   e.stopPropagation()
-                  setLang("az")
+                  handleLanguageChange("az")
                   setMenuOpen(false)
                 }}
-                className={lang === "az" ? "lang-active" : "lang-inactive"}
+                className={language === "az" ? "lang-active" : "lang-inactive"}
                 alt="AZ"
               />
               <img
-                src={EnImg}
+                src={icons.enFlag}
                 onClick={(e) => {
                   e.stopPropagation()
-                  setLang("en")
+                  handleLanguageChange("en")
                   setMenuOpen(false)
                 }}
-                className={lang === "en" ? "lang-active" : "lang-inactive"}
+                className={language === "en" ? "lang-active" : "lang-inactive"}
                 alt="EN"
               />
             </div>
             <div className="Navbar-Theme">
               <img
-                src={AutoSvg}
+                src={icons.autoTheme}
                 onClick={(e) => {
                   e.stopPropagation()
                   setTheme("auto")
@@ -247,7 +254,7 @@ const Navbar = () => {
                 alt="Auto"
               />
               <img
-                src={LightSvg}
+                src={icons.lightTheme}
                 onClick={(e) => {
                   e.stopPropagation()
                   setTheme("light")
@@ -257,7 +264,7 @@ const Navbar = () => {
                 alt="Light"
               />
               <img
-                src={DarkSvg}
+                src={icons.darkTheme}
                 onClick={(e) => {
                   e.stopPropagation()
                   setTheme("dark")
@@ -268,7 +275,7 @@ const Navbar = () => {
               />
             </div>
           </div>
-          <img className='bgPattern' src={bgSvg} alt="background pattern" />
+          <img className='bgPattern' src={icons.bgPattern} alt="background pattern" />
         </div>
       </div>
 

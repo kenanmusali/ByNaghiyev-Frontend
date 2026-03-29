@@ -1,18 +1,46 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import RightSvg from "../assets/svg/right.svg"
 import LeftSvg from "../assets/svg/left.svg"
-import LogoTextSvg from "../assets/svg/logo-text.svg"
-import About1Img from "../assets/img/about/about1.png"
-import About2Img from "../assets/img/about/about2.png"
-import About3Img from "../assets/img/about/about3.png"
+import BgBodySvg from "../assets/svg/bg-body1.svg"
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const About = () => {
+    const [images, setImages] = useState([]);
+    const [logoTextSvg, setLogoTextSvg] = useState('');
+    const [sectionTitle, setSectionTitle] = useState({ en: 'About us', az: 'Haqqımızda' });
+    const [texts, setTexts] = useState([]);
+const { language } = useLanguage();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const [images, setImages] = useState([
-        About1Img,
-        About2Img,
-        About3Img
-    ])
+    useEffect(() => {
+        const fetchAboutData = async () => {
+            try {
+                setLoading(true);
+                const timestamp = new Date().getTime();
+                const response = await fetch(`https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/refs/heads/main/src/data/about-data.json?_=${timestamp}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch about data');
+                }
+                
+                const data = await response.json();
+                
+                if (data.images) setImages(data.images);
+                if (data.logoTextSvg) setLogoTextSvg(data.logoTextSvg);
+                if (data.sectionTitle) setSectionTitle(data.sectionTitle);
+                if (data.texts) setTexts(data.texts);
+                
+                setLoading(false);
+            } catch (err) {
+                setError(err.message);
+                setLoading(false);
+                console.error('Error fetching about data:', err);
+            }
+        };
+
+        fetchAboutData();
+    }, []);
 
     const handleRight = () => {
         setImages((prev) => {
@@ -32,9 +60,31 @@ const About = () => {
         })
     }
 
+    if (loading) {
+        return (
+            <div className='About-Group Section-Slot' id='about'>
+                <h1 className='Section-Title'>{sectionTitle[language]}</h1>
+                <div className="loading-container">
+                    <p>Loading about content...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className='About-Group Section-Slot' id='about'>
+                <h1 className='Section-Title'>{sectionTitle[language]}</h1>
+                <div className="error-container">
+                    <p>Error loading about content: {error}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className='About-Group Section-Slot' id='about'>
-            <h1 className='Section-Title'>About us</h1>
+            <h1 className='Section-Title'>{sectionTitle[language]}</h1>
 
             <div className="Slider-Group">
                 <div className="SubSlider">
@@ -44,8 +94,8 @@ const About = () => {
                     </button>
 
                     <div className="ImageStacks">
-                        {images.map((img) => (
-                            <img key={img} src={img} alt="about" />
+                        {images.map((img, index) => (
+                            <img key={index} src={img} alt="about" />
                         ))}
                     </div>
 
@@ -56,11 +106,11 @@ const About = () => {
                 </div>
 
                 <div className="SubText">
-                    <p>The</p>
-                    <img src={LogoTextSvg} />
-                    <p>Azerbaijani brand. It is engaged in the production of decorative items for the home, scented and variously designed candles, epoxy pots.</p>
-                    <p>The products are handmade, made to order. Delivery to any address is possible. Hurry up to order.</p>
-                    <p>With By Naghiyev products, you can also give your home an aesthetic touch and change the energy!</p>
+                    <p>{texts[language]?.[0] || ''}</p>
+                    <img src={logoTextSvg} alt="Logo Text" />
+                    <p>{texts[language]?.[1] || ''}</p>
+                    <p>{texts[language]?.[2] || ''}</p>
+                    <p>{texts[language]?.[3] || ''}</p>
                 </div>
             </div>
         </div>

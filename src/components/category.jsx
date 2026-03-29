@@ -1,35 +1,70 @@
-import React from 'react'
-import Items1Svg from '../assets/svg/volunteer_activism.svg'
-import Items2Svg from '../assets/svg/deployed_code.svg'
-import Items3Svg from '../assets/svg/asterisk.svg'
-import Items4Svg from '../assets/svg/psychiatry.svg'
+import React, { useState, useEffect } from 'react'
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Category = () => {
-  return (
-    <div className='Category-Group'>
-      <div className="CategoryItem">
-        <img src={Items1Svg} />
-        <h2>Hand Made</h2>
-        <p>Carefully crafted by hand with attention to fine detail, ensuring every piece is unique.</p>
-      </div>
-      <div className="CategoryItem">
-        <img src={Items2Svg} />
-        <h2>Premium Materials</h2>
-        <p>We use high-quality wax, resin, and plaster for durability, safety, and refined finish.</p>
-      </div>
-      <div className="CategoryItem">
-        <img src={Items3Svg} />
-        <h2>Modern Design</h2>
-        <p>We use high-quality wax, resin, and plaster for durability, safety, and refined finish.</p>
-      </div>
-      <div className="CategoryItem">
-        <img src={Items4Svg} />
-        <h2>Eco Conscious</h2>
-        <p>Thoughtfully sourced materials and responsible production practices.</p>
-      </div>
+    const [categories, setCategories] = useState([]);
+    const [sectionTitle, setSectionTitle] = useState({ en: 'Categories', az: 'Kateqoriyalar' });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+const { language } = useLanguage();
 
-    </div>
-  )
+    useEffect(() => {
+   const fetchCategories = async () => {
+    try {
+        setLoading(true);
+        // Add cache-busting query parameter
+        const timestamp = new Date().getTime();
+        const response = await fetch(`https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/refs/heads/main/src/data/category-data.json?_=${timestamp}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch categories data');
+        }
+        
+        const data = await response.json();
+        setCategories(data.categories);
+        if (data.sectionTitle) setSectionTitle(data.sectionTitle);
+        setLoading(false);
+    } catch (err) {
+        setError(err.message);
+        setLoading(false);
+        console.error('Error fetching categories:', err);
+    }
+};
+
+        fetchCategories();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className='Category-Group'>
+                <div className="loading-container">
+                    <p>Loading categories...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className='Category-Group'>
+                <div className="error-container">
+                    <p>Error loading categories: {error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className='Category-Group'>
+            {categories.map((category) => (
+                <div key={category.id} className="CategoryItem">
+                    <img src={category.icon} alt={category.name[language]} />
+                    <h2>{category.name[language]}</h2>
+                    <p>{category.description[language]}</p>
+                </div>
+            ))}
+        </div>
+    )
 }
 
 export default Category

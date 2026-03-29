@@ -2,28 +2,52 @@ import React, { useState, useEffect, useRef } from 'react'
 import RightSvg from "../assets/svg/right.svg"
 import LeftSvg from "../assets/svg/left.svg"
 import BgBodySvg from "../assets/svg/bg-body1.svg"
-import Product1Img from "../assets/img/product/product1.png"
-import EbaySvg from "../assets/svg/EBay.svg"
-import InstagramSvg from "../assets/svg/instagram.svg"
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Products = () => {
     const [startIndex, setStartIndex] = useState(0);
     const [activeIndex, setActiveIndex] = useState(null);
     const [itemsToShow, setItemsToShow] = useState(4);
+    const [products, setProducts] = useState([]);
+    const [sectionTitle, setSectionTitle] = useState({ en: 'Products', az: 'Məhsullar' });
+    const [orderNowText, setOrderNowText] = useState({ en: 'Order Now', az: 'Sifariş Et' });
+    const [orderInstagramText, setOrderInstagramText] = useState({ en: 'Order in Instagram', az: 'Instagram-da Sifariş Et' });
+    const [orderEbayText, setOrderEbayText] = useState({ en: 'Order in EBay', az: 'EBay-da Sifariş Et' });
+ const { language } = useLanguage();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const activeRef = useRef(null);
     const timeoutRef = useRef(null);
 
-    // Sample product data
-    const products = [
-        { id: 1, name: "Scented Candle 1", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 2, name: "Scented Candle 2", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 3, name: "Scented Candle 3", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 4, name: "Scented Candle 4", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 5, name: "Scented Candle 5", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 6, name: "Scented Candle 6", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 7, name: "Scented Candle 7", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 8, name: "Scented Candle 8", description: "Natural Waxes & Essential Oils", image: Product1Img },
-    ];
+    useEffect(() => {
+        const fetchProductsData = async () => {
+            try {
+                setLoading(true);
+                const timestamp = new Date().getTime();
+                const response = await fetch(`https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/refs/heads/main/src/data/product-data.json?_=${timestamp}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch products data');
+                }
+                
+                const data = await response.json();
+                
+                if (data.products) setProducts(data.products);
+                if (data.sectionTitle) setSectionTitle(data.sectionTitle);
+                if (data.orderNowText) setOrderNowText(data.orderNowText);
+                if (data.orderInstagramText) setOrderInstagramText(data.orderInstagramText);
+                if (data.orderEbayText) setOrderEbayText(data.orderEbayText);
+                
+                setLoading(false);
+            } catch (err) {
+                setError(err.message);
+                setLoading(false);
+                console.error('Error fetching products:', err);
+            }
+        };
+
+        fetchProductsData();
+    }, []);
 
     // Handle responsive items per slide
     useEffect(() => {
@@ -48,7 +72,6 @@ const Products = () => {
     const nextSlide = () => {
         setStartIndex((prevIndex) => {
             const nextIndex = prevIndex + 1;
-            // If next index would go beyond array, wrap around
             return nextIndex >= products.length ? 0 : nextIndex;
         });
         setActiveIndex(null);
@@ -58,7 +81,6 @@ const Products = () => {
     const prevSlide = () => {
         setStartIndex((prevIndex) => {
             const prevIndexCalc = prevIndex - 1;
-            // If previous index is negative, wrap to end
             return prevIndexCalc < 0 ? products.length - 1 : prevIndexCalc;
         });
         setActiveIndex(null);
@@ -66,6 +88,7 @@ const Products = () => {
 
     // Get current items to display with circular array
     const getVisibleProducts = () => {
+        if (products.length === 0) return [];
         const visible = [];
         for (let i = 0; i < itemsToShow; i++) {
             const index = (startIndex + i) % products.length;
@@ -110,11 +133,33 @@ const Products = () => {
         };
     }, []);
 
+    if (loading) {
+        return (
+            <div className='About-Group FreeResponsive-Group Section-Slot' id='products'>
+                <h1 className='Section-Title'>{sectionTitle[language]}</h1>
+                <div className="loading-container">
+                    <p>Loading products...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className='About-Group FreeResponsive-Group Section-Slot' id='products'>
+                <h1 className='Section-Title'>{sectionTitle[language]}</h1>
+                <div className="error-container">
+                    <p>Error loading products: {error}</p>
+                </div>
+            </div>
+        );
+    }
+
     const visibleProducts = getVisibleProducts();
 
     return (
         <div className='About-Group FreeResponsive-Group Section-Slot' id='products'>
-            <h1 className='Section-Title'>Products</h1>
+            <h1 className='Section-Title'>{sectionTitle[language]}</h1>
 
             <div className="Slider-Group">
                 <div className="SubSlider">
@@ -133,9 +178,9 @@ const Products = () => {
                                     onClick={() => handleItemClick(globalIndex)}
                                     ref={activeIndex === globalIndex ? activeRef : null}
                                 >
-                                    <img src={product.image} alt={product.name} />
-                                    <h2>{product.name}</h2>
-                                    <p>{product.description}</p>
+                                    <img src={product.image} alt={product.name[language]} />
+                                    <h2>{product.name[language]}</h2>
+                                    <p>{product.description[language]}</p>
                                     <div 
                                         className="ButtonInteract"
                                         onClick={(e) => {
@@ -144,7 +189,7 @@ const Products = () => {
                                         }}
                                     >
                                         <button className='ButtonOn'>
-                                            <p>Order Now</p>
+                                            <p>{orderNowText[language]}</p>
                                         </button>
                                     </div>
                                     <img className='ItemStackBg' src={BgBodySvg} alt="Background" />
@@ -152,20 +197,20 @@ const Products = () => {
                                     {activeIndex === globalIndex && (
                                         <div className="ItemStackActive">
                                             <div className="ItemStackActiveItem">
-                                                <img src={InstagramSvg} alt="Instagram" />
+                                                <img src={product.instagramIcon} alt="Instagram" />
                                                 <div className="ButtonInteract">
                                                     <button className='ButtonOn'>
-                                                        <p>Order in Instagram</p>
+                                                        <p>{orderInstagramText[language]}</p>
                                                     </button>
                                                 </div>
                                                 <img className='ItemStackBg' src={BgBodySvg} alt="Background" />
                                             </div>
                                             <div className="hr-line-y"></div>
                                             <div className="ItemStackActiveItem">
-                                                <img src={EbaySvg} alt="eBay" />
+                                                <img src={product.ebayIcon} alt="eBay" />
                                                 <div className="ButtonInteract">
                                                     <button className='ButtonOn'>
-                                                        <p>Order in EBay</p>
+                                                        <p>{orderEbayText[language]}</p>
                                                     </button>
                                                 </div>
                                                 <img className='ItemStackBg' src={BgBodySvg} alt="Background" />

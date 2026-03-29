@@ -2,28 +2,52 @@ import React, { useState, useEffect, useRef } from 'react'
 import RightSvg from "../assets/svg/right.svg"
 import LeftSvg from "../assets/svg/left.svg"
 import BgBodySvg from "../assets/svg/bg-body1.svg"
-import Product1Img from "../assets/img/blogs/blogs1.png"
+import CloseSvg from "../assets/svg/close.svg"
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Blogs = () => {
     const [startIndex, setStartIndex] = useState(0);
     const [activeIndex, setActiveIndex] = useState(null);
     const [itemsToShow, setItemsToShow] = useState(4);
+    const [selectedBlog, setSelectedBlog] = useState(null);
+    const [blogs, setBlogs] = useState([]);
+    const [sectionTitle, setSectionTitle] = useState({ en: 'Blogs', az: 'Bloqlar' });
+    const [readMoreText, setReadMoreText] = useState({ en: 'Read More', az: 'Daha Ətraflı' });
+const { language } = useLanguage();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const activeRef = useRef(null);
     const timeoutRef = useRef(null);
+    const modalRef = useRef(null);
 
-    // Sample product data
-    const products = [
-        { id: 1, name: "Scented Candle 1", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 2, name: "Scented Candle 2", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 3, name: "Scented Candle 3", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 4, name: "Scented Candle 4", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 5, name: "Scented Candle 5", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 6, name: "Scented Candle 6", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 7, name: "Scented Candle 7", description: "Natural Waxes & Essential Oils", image: Product1Img },
-        { id: 8, name: "Scented Candle 8", description: "Natural Waxes & Essential Oils", image: Product1Img },
-    ];
 
-    // Handle responsive items per slide
+    useEffect(() => {
+    const fetchBlogs = async () => {
+    try {
+        setLoading(true);
+        // Add cache-busting query parameter
+        const timestamp = new Date().getTime();
+        const response = await fetch(`https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/refs/heads/main/src/data/blog-data.json?_=${timestamp}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch blogs data');
+        }
+        
+        const data = await response.json();
+        setBlogs(data.blogs);
+        if (data.sectionTitle) setSectionTitle(data.sectionTitle);
+        if (data.readMoreText) setReadMoreText(data.readMoreText);
+        setLoading(false);
+    } catch (err) {
+        setError(err.message);
+        setLoading(false);
+        console.error('Error fetching blogs:', err);
+    }
+};
+
+        fetchBlogs();
+    }, []);
+
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth < 768) {
@@ -42,53 +66,48 @@ const Blogs = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Handle next slide - proper circular sliding
     const nextSlide = () => {
         setStartIndex((prevIndex) => {
             const nextIndex = prevIndex + 1;
-            // If next index would go beyond array, wrap around
-            return nextIndex >= products.length ? 0 : nextIndex;
+            return nextIndex >= blogs.length ? 0 : nextIndex;
         });
         setActiveIndex(null);
     };
 
-    // Handle previous slide - proper circular sliding
     const prevSlide = () => {
         setStartIndex((prevIndex) => {
             const prevIndexCalc = prevIndex - 1;
-            // If previous index is negative, wrap to end
-            return prevIndexCalc < 0 ? products.length - 1 : prevIndexCalc;
+            return prevIndexCalc < 0 ? blogs.length - 1 : prevIndexCalc;
         });
         setActiveIndex(null);
     };
 
-    // Get current items to display with circular array
-    const getVisibleProducts = () => {
+    const getVisibleBlogs = () => {
+        if (blogs.length === 0) return [];
         const visible = [];
         for (let i = 0; i < itemsToShow; i++) {
-            const index = (startIndex + i) % products.length;
-            visible.push(products[index]);
+            const index = (startIndex + i) % blogs.length;
+            visible.push(blogs[index]);
         }
         return visible;
     };
 
-    // Handle opening ItemStackActive
-    const handleItemClick = (index) => {
-        const newActiveIndex = activeIndex === index ? null : index;
-        setActiveIndex(newActiveIndex);
-        
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-        
-        if (newActiveIndex !== null) {
-            timeoutRef.current = setTimeout(() => {
-                setActiveIndex(null);
-            }, 5000);
+    const handleBlogClick = (blog) => {
+        setSelectedBlog(blog);
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = () => {
+        setSelectedBlog(null);
+        document.body.style.overflow = 'auto';
+    };
+
+    const handleModalClickOutside = (e) => {
+        if (modalRef.current && !modalRef.current.contains(e.target)) {
+            closeModal();
         }
     };
 
-    // Handle click outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (activeRef.current && !activeRef.current.contains(event.target)) {
@@ -108,56 +127,124 @@ const Blogs = () => {
         };
     }, []);
 
-    const visibleProducts = getVisibleProducts();
-
-    return (
-        <div className='About-Group FreeResponsive-Group Section-Slot' id='products'>
-            <h1 className='Section-Title'>Products</h1>
-
-            <div className="Slider-Group">
-                <div className="SubSlider">
-                    <button className='ButtonOff2' onClick={prevSlide}>
-                        <img src={LeftSvg} alt="Left" />
-                    </button>
-
-                    <div className="ItemStacks">
-                        {visibleProducts.map((product, idx) => {
-                            const globalIndex = (startIndex + idx) % products.length;
-                            
-                            return (
-                                <div 
-                                    key={`${product.id}-${globalIndex}`} 
-                                    className="ItemStack"
-                                    onClick={() => handleItemClick(globalIndex)}
-                                    ref={activeIndex === globalIndex ? activeRef : null}
-                                >
-                                    <img src={product.image} alt={product.name} />
-                                    <h2>{product.name}</h2>
-                                    <p>{product.description}</p>
-                                    <div 
-                                        className="ButtonInteract"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            // Just open Instagram or eBay directly without showing ItemStackActiveItem
-                                            window.open('https://www.instagram.com', '_blank');
-                                        }}
-                                    >
-                                        <button className='ButtonOn'>
-                                            <p>Order Now</p>
-                                        </button>
-                                    </div>
-                                    <img className='ItemStackBg' src={BgBodySvg} alt="Background" />
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    <button className='ButtonOff2' onClick={nextSlide}>
-                        <img src={RightSvg} alt="Right" />
-                    </button>
+    if (loading) {
+        return (
+            <div className='About-Group FreeResponsive-Group Section-Slot' id='blogs'>
+                <h1 className='Section-Title'>{sectionTitle[language]}</h1>
+                <div className="loading-container">
+                    <p>Loading blogs...</p>
                 </div>
             </div>
-        </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className='About-Group FreeResponsive-Group Section-Slot' id='blogs'>
+                <h1 className='Section-Title'>{sectionTitle[language]}</h1>
+                <div className="error-container">
+                    <p>Error loading blogs: {error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    const visibleBlogs = getVisibleBlogs();
+
+    return (
+        <>
+            <div className='About-Group FreeResponsive-Group Section-Slot' id='blogs'>
+                <h1 className='Section-Title'>{sectionTitle[language]}</h1>
+
+                <div className="Slider-Group">
+                    <div className="SubSlider">
+                        <button className='ButtonOff2' onClick={prevSlide}>
+                            <img src={LeftSvg} alt="Left" />
+                        </button>
+
+                        <div className="ItemStacks">
+                            {visibleBlogs.map((blog, idx) => {
+                                const globalIndex = (startIndex + idx) % blogs.length;
+                                
+                                return (
+                                    <div 
+                                        key={`${blog.id}-${globalIndex}`} 
+                                        className="ItemStack"
+                                        onClick={() => handleBlogClick(blog)}
+                                        ref={activeIndex === globalIndex ? activeRef : null}
+                                    >
+                                        <img src={blog.image} alt={blog.name[language]} />
+                                        <h5>{blog.time[language]}</h5>
+                                        <h2>{blog.name[language]}</h2>
+                                        <p>{blog.description[language]}</p>
+                                        <div 
+                                            className="ButtonInteract"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleBlogClick(blog);
+                                            }}
+                                        >
+                                            <button className='ButtonOn'>
+                                                <p>{readMoreText[language]}</p>
+                                            </button>
+                                        </div>
+                                        <img className='ItemStackBg' src={BgBodySvg} alt="Background" />
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <button className='ButtonOff2' onClick={nextSlide}>
+                            <img src={RightSvg} alt="Right" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Modal Popup */}
+            {selectedBlog && (
+                <div className="blog-modal-overlay" onClick={handleModalClickOutside}>
+                    <div className="blog-modal-container" ref={modalRef}>
+                        <button className="blog-modal-close" onClick={closeModal}>
+                            <img src={CloseSvg} alt="Close" />
+                        </button>
+                        
+                        <div className="blog-modal-content">
+                            {/* Hero Image */}
+                            <div className="blog-modal-hero">
+                                <img src={selectedBlog.image} alt={selectedBlog.expandedContent.title[language]} />
+                            </div>
+                            
+                            {/* Title and Meta */}
+                            <div className="blog-modal-header">
+                                <h1>{selectedBlog.expandedContent.title[language]}</h1>
+                                <div className="blog-modal-meta">
+                                    <span>{selectedBlog.time[language]}</span>
+                                    <span>•</span>
+                                    <span>{selectedBlog.name[language]}</span>
+                                </div>
+                            </div>
+                            
+                            {/* Article Content */}
+                            <div className="blog-modal-body">
+                                {selectedBlog.expandedContent.paragraphs[language].map((paragraph, idx) => (
+                                    <p key={idx}>{paragraph}</p>
+                                ))}
+                                
+                                {/* Image Gallery */}
+                                <div className="blog-modal-gallery">
+                                    {selectedBlog.expandedContent.images.map((img, idx) => (
+                                        <div key={idx} className="blog-modal-gallery-item">
+                                            <img src={img} alt={`Gallery ${idx + 1}`} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     )
 }
 
