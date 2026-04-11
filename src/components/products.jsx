@@ -109,7 +109,7 @@ const Products = () => {
         if (newActiveIndex !== null) {
             timeoutRef.current = setTimeout(() => {
                 setActiveIndex(null);
-            }, 5000);
+            }, 50000);
         }
     };
 
