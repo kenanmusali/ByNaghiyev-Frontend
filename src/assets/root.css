@@ -11,6 +11,10 @@
     --shadow-soft: 0px 2px 5px 0px rgba(0, 0, 0, 0.15);
     --drop-shadow-soft: drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15));
     --drop-shadow-soft-hover: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45));
+
+    --black-filter: brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%);;
+    --white-filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%);;
+
 }
 
 * {
@@ -56,7 +60,7 @@ body::before {
     position: fixed;
     width: 100%;
     height: 110px;
-    color: var(--white-color);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -167,7 +171,7 @@ body::before {
 .Navbar-Items p {
     font-size: 16px;
     text-transform: uppercase;
-    color: var(--white-color);
+    color: white;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
@@ -195,7 +199,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    outline: 1px solid var(--white-color);
+    outline: 1px solid white;
     border-radius: 100px;
     padding: 3px 3.1px;
 
@@ -203,7 +207,7 @@ body::before {
 
 
 .theme-active {
-    border: 1px solid var(--white-color);
+    border: 1px solid white;
     border-radius: 100px;
     -webkit-border-radius: 100px;
     -moz-border-radius: 100px;
@@ -233,7 +237,7 @@ body::before {
 }
 
 .lang-active {
-    outline: 1px solid var(--white-color);
+    outline: 1px solid white;
     border-radius: 4px;
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
@@ -263,7 +267,7 @@ body::before {
 
     .Header-Text-Group p {
         font-size: 20px;
-        color: var(--white-color);
+        color: white;
         text-shadow: var(--shadow-soft);
         opacity: 0.8;
         margin-bottom: 1.5rem;
@@ -271,7 +275,7 @@ body::before {
 
     .Header-Text-Group h1 {
         font-size: 30px !important;
-        color: var(--white-color);
+        color: white;
         text-shadow: var(--shadow-soft);
         text-transform: uppercase;
         font-weight: 800;
@@ -498,7 +502,7 @@ body::before {
 }
 
 .mobile-menu-content p {
-    color: var(--white-color);
+    color: white;
     text-decoration: none;
     font-size: 20px;
     text-transform: uppercase;
@@ -632,7 +636,7 @@ display: flex;
 
 .Header-Text-Group p {
     font-size: 20px;
-    color: var(--white-color);
+    color: white;
     text-shadow: var(--shadow-soft);
     opacity: 0.8;
     margin-bottom: 1.5rem;
@@ -640,7 +644,7 @@ display: flex;
 
 .Header-Text-Group h1 {
     font-size: 64px;
-    color: var(--white-color);
+    color: white;
     text-shadow: var(--shadow-soft);
     text-transform: uppercase;
     font-weight: 800;
@@ -665,7 +669,7 @@ display: flex;
     padding: 20px 25px;
     font-size: 16px;
     text-transform: uppercase;
-    color: var(--white-color);
+    color: white;
     border-radius: 1000px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
@@ -688,6 +692,7 @@ button {
     width: fit-content;
     height: fit-content;
     scale: 1;
+    color: white;
 }
 
 .ButtonOff img {
@@ -717,7 +722,7 @@ button:hover {
 }
 
 .ButtonOff {
-    border: 1px solid var(--white-color);
+    border: 1px solid white;
     width: fit-content;
     height: fit-content;
     background-color: rgba(0, 0, 0, 0.068);
@@ -952,11 +957,11 @@ button:hover {
     text-align: justify;
     margin-right: 80px;
     margin-bottom: 40px;
+    color: var(--black-color);
 }
 
 .SubText img {
-    filter: invert();
-    -webkit-filter: invert();
+  filter: var(--black-filter);
     user-select: none;
     width: 20rem;
     margin-bottom: 20px;
@@ -1060,7 +1065,7 @@ button:hover {
     .ItemStack img {
 
         width: 100%;
-        height: 15rem !important;
+        /* height: fit-content !important; */
         object-fit: cover;
 
     }
@@ -1100,7 +1105,7 @@ opacity: 0.5;
 @media screen and (min-width: 768px) and (max-width: 1200px) {
     .Header-Text-Group h1 {
         font-size: 50px !important;
-        color: var(--white-color);
+        color: white;
         text-shadow: var(--shadow-soft);
         text-transform: uppercase;
         font-weight: 800;
@@ -1110,7 +1115,7 @@ opacity: 0.5;
     .ItemStack img {
 
         width: 100%;
-        height: 15rem !important;
+        /* height: fit-content !important; */
         object-fit: cover;
 
     }
@@ -1303,6 +1308,7 @@ z-index: 2;
 .ItemStack p {
     padding: 10px 20px 20px 20px;
     font-weight: 500;
+    color: var(--black-color);
 }
 
 .ItemStack h2 {
@@ -1384,7 +1390,7 @@ z-index: 2;
 
 
 .Social-Button-Group .ButtonOn {
-    background-color: var(--white-color);
+    background-color: white;
     color: var(--green-color);
 }
 
@@ -1553,7 +1559,7 @@ z-index: 2;
 
 .LogoSection p {
     font-size: 16px;
-    color: var(--white-color);
+    color: white;
     text-shadow: var(--shadow-soft);
     width: 260px;
     margin-left: 70px;
@@ -1575,7 +1581,7 @@ z-index: 2;
 }
 
 .SlotSection h2 {
-    color: var(--white-color);
+    color: white;
 }
 
 .SlotSection {

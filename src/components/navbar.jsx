@@ -17,6 +17,93 @@ const Navbar = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Apply theme to root element
+  const applyTheme = (themeMode) => {
+    const root = document.documentElement
+    
+    if (themeMode === 'dark') {
+      root.style.setProperty('--black-color', '#ffffff')
+      root.style.setProperty('--white-color', '#000000')
+      root.style.setProperty('--green-color', '#2b655d')
+      root.style.setProperty('--lime-color', '#1a2a28')
+      root.style.setProperty('--green-filter-color', 'brightness(0) saturate(100%) invert(70%) sepia(30%) saturate(400%) hue-rotate(122deg) brightness(95%) contrast(91%)')
+      root.style.setProperty('--green-gradient-primary', 'linear-gradient(180deg, #1a4a44 0%, #0f302a 100%)')
+      root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
+      root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
+      root.style.setProperty('--drop-shadow-soft-hover', 'drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45))')
+      root.style.setProperty(
+        '--black-filter',
+        'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)'
+      )
+      root.style.setProperty(
+        '--white-filter',
+        'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)'
+      )
+    } else if (themeMode === 'light') {
+      root.style.setProperty('--black-color', '#000000')
+      root.style.setProperty('--white-color', '#ffffff')
+      root.style.setProperty('--green-color', '#1F4A44')
+      root.style.setProperty('--lime-color', '#F2FDFB')
+      root.style.setProperty('--green-filter-color', 'brightness(0) saturate(100%) invert(22%) sepia(39%) saturate(579%) hue-rotate(122deg) brightness(95%) contrast(91%)')
+      root.style.setProperty('--green-gradient-primary', 'linear-gradient(180deg, #2b655d 0%, #1F4A44 100%)')
+      root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
+      root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
+      root.style.setProperty('--drop-shadow-soft-hover', 'drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45))')
+      root.style.setProperty(
+        '--black-filter',
+        'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)'
+      )
+      root.style.setProperty(
+        '--white-filter',
+        'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)'
+      )
+    }
+  }
+
+  // Detect system theme
+  const getSystemTheme = () => {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+
+  // Load saved theme from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme-preference')
+    if (savedTheme && (savedTheme === 'auto' || savedTheme === 'light' || savedTheme === 'dark')) {
+      setTheme(savedTheme)
+    } else {
+      // If no saved preference, default to 'auto'
+      localStorage.setItem('theme-preference', 'auto')
+    }
+  }, [])
+
+  // Handle theme changes
+  useEffect(() => {
+    const handleThemeChange = () => {
+      if (theme === 'auto') {
+        const systemTheme = getSystemTheme()
+        applyTheme(systemTheme)
+      } else {
+        applyTheme(theme)
+      }
+    }
+
+    handleThemeChange()
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleSystemThemeChange = () => {
+      if (theme === 'auto') {
+        applyTheme(getSystemTheme())
+      }
+    }
+
+    mediaQuery.addEventListener('change', handleSystemThemeChange)
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleSystemThemeChange)
+    }
+  }, [theme])
+
   useEffect(() => {
     const fetchNavbarData = async () => {
       try {
@@ -111,6 +198,11 @@ const Navbar = () => {
     setLanguage(newLang)
   }
 
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme)
+    localStorage.setItem('theme-preference', newTheme)
+  }
+
   if (loading) {
     return (
       <div className="Navbar-Group">
@@ -183,7 +275,7 @@ const Navbar = () => {
               src={icons.autoTheme}
               onClick={(e) => {
                 e.stopPropagation()
-                setTheme("auto")
+                handleThemeChange("auto")
               }}
               className={theme === "auto" ? "theme-active" : "theme-inactive"}
               alt="Auto"
@@ -192,7 +284,7 @@ const Navbar = () => {
               src={icons.lightTheme}
               onClick={(e) => {
                 e.stopPropagation()
-                setTheme("light")
+                handleThemeChange("light")
               }}
               className={theme === "light" ? "theme-active" : "theme-inactive"}
               alt="Light"
@@ -201,7 +293,7 @@ const Navbar = () => {
               src={icons.darkTheme}
               onClick={(e) => {
                 e.stopPropagation()
-                setTheme("dark")
+                handleThemeChange("dark")
               }}
               className={theme === "dark" ? "theme-active" : "theme-inactive"}
               alt="Dark"
@@ -247,7 +339,7 @@ const Navbar = () => {
                 src={icons.autoTheme}
                 onClick={(e) => {
                   e.stopPropagation()
-                  setTheme("auto")
+                  handleThemeChange("auto")
                   setMenuOpen(false)
                 }}
                 className={theme === "auto" ? "theme-active" : "theme-inactive"}
@@ -257,7 +349,7 @@ const Navbar = () => {
                 src={icons.lightTheme}
                 onClick={(e) => {
                   e.stopPropagation()
-                  setTheme("light")
+                  handleThemeChange("light")
                   setMenuOpen(false)
                 }}
                 className={theme === "light" ? "theme-active" : "theme-inactive"}
@@ -267,7 +359,7 @@ const Navbar = () => {
                 src={icons.darkTheme}
                 onClick={(e) => {
                   e.stopPropagation()
-                  setTheme("dark")
+                  handleThemeChange("dark")
                   setMenuOpen(false)
                 }}
                 className={theme === "dark" ? "theme-active" : "theme-inactive"}
