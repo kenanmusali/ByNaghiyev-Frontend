@@ -153,16 +153,16 @@ const Navbar = () => {
     return () => mediaQuery.removeEventListener('change', handleSystemThemeChange)
   }, [theme, selectedColor])
 
-  // Fetch navbar data including selectedColor
+  // Fetch navbar data including selectedColor - FIXED URL
   useEffect(() => {
     const fetchNavbarData = async () => {
       try {
         setLoading(true)
-        const timestamp = new Date().getTime()
-        const response = await fetch(`https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/refs/heads/main/src/data/navbar-data.json?_=${timestamp}`)
+        // FIXED: Use correct raw GitHub URL
+        const response = await fetch('https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/main/src/data/navbar-data.json')
         
         if (!response.ok) {
-          throw new Error('Failed to fetch navbar data')
+          throw new Error(`Failed to fetch: ${response.status}`)
         }
         
         const data = await response.json()
@@ -171,7 +171,6 @@ const Navbar = () => {
         if (data.icons) setIcons(data.icons)
         if (data.navItems) setNavItems(data.navItems)
         if (data.mobileNavItems) setMobileNavItems(data.mobileNavItems)
-        // IMPORTANT: Read the color from JSON
         if (data.selectedColor) setSelectedColor(data.selectedColor)
         
         setLoading(false)
