@@ -26,8 +26,7 @@
   
   img.onload = function() {
     const imageHeight = img.height;
-    
-    // Calculate how many times the image needs to repeat
+
     const repeatCount = Math.ceil(sectionHeight / imageHeight) + 1; // +1 for overlap
     
     // Build the background properties
