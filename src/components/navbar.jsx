@@ -14,50 +14,83 @@ const Navbar = () => {
   const [icons, setIcons] = useState({})
   const [navItems, setNavItems] = useState([])
   const [mobileNavItems, setMobileNavItems] = useState([])
+  const [colorTheme, setColorTheme] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Apply theme to root element
+  // Apply theme with dynamic colors from data
   const applyTheme = (themeMode) => {
     const root = document.documentElement
     
-    if (themeMode === 'dark') {
-      root.style.setProperty('--black-color', '#ffffff')
-      root.style.setProperty('--white-color', '#000000')
-      root.style.setProperty('--green-color', '#2b655d')
-      root.style.setProperty('--lime-color', '#1a2a28')
-      root.style.setProperty('--green-filter-color', 'brightness(0) saturate(100%) invert(70%) sepia(30%) saturate(400%) hue-rotate(122deg) brightness(95%) contrast(91%)')
-      root.style.setProperty('--green-gradient-primary', 'linear-gradient(180deg, #1a4a44 0%, #0f302a 100%)')
-      root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
-      root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
-      root.style.setProperty('--drop-shadow-soft-hover', 'drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45))')
-      root.style.setProperty(
-        '--black-filter',
-        'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)'
-      )
-      root.style.setProperty(
-        '--white-filter',
-        'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)'
-      )
-    } else if (themeMode === 'light') {
-      root.style.setProperty('--black-color', '#000000')
-      root.style.setProperty('--white-color', '#ffffff')
-      root.style.setProperty('--green-color', '#1F4A44')
-      root.style.setProperty('--lime-color', '#F2FDFB')
-      root.style.setProperty('--green-filter-color', 'brightness(0) saturate(100%) invert(22%) sepia(39%) saturate(579%) hue-rotate(122deg) brightness(95%) contrast(91%)')
-      root.style.setProperty('--green-gradient-primary', 'linear-gradient(180deg, #2b655d 0%, #1F4A44 100%)')
-      root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
-      root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
-      root.style.setProperty('--drop-shadow-soft-hover', 'drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45))')
-      root.style.setProperty(
-        '--black-filter',
-        'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)'
-      )
-      root.style.setProperty(
-        '--white-filter',
-        'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)'
-      )
+    // Get color variants from data, fallback to defaults
+    const colorVariants = colorTheme?.colorVariants || {}
+    const preset = colorTheme?.preset || 'green-primary'
+    const selectedVariant = colorVariants[preset] || colorVariants['green-primary']
+    
+    const colors = themeMode === 'dark' ? selectedVariant?.dark : selectedVariant?.light
+
+    if (colors) {
+      root.style.setProperty('--black-color', colors.black)
+      root.style.setProperty('--white-color', colors.white)
+      root.style.setProperty('--green-color', colors.green)
+      root.style.setProperty('--lime-color', colors.lime)
+      root.style.setProperty('--green-gradient-primary', colors.gradient)
+      
+      // Filter for SVG icons (approximate filter to match primary color)
+      const greenFilter = generateSvgFilter(colors.green, themeMode)
+      root.style.setProperty('--green-filter-color', greenFilter)
     }
+    
+    // Always set these (theme-agnostic)
+    root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
+    root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
+    root.style.setProperty('--drop-shadow-soft-hover', 'drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45))')
+    root.style.setProperty(
+      '--black-filter',
+      'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)'
+    )
+    root.style.setProperty(
+      '--white-filter',
+      'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)'
+    )
+  }
+
+  // Simple SVG filter generator from hex color
+  const generateSvgFilter = (hexColor, mode) => {
+    // This is a simplified approach - in production, you might want to use a library
+    // to generate accurate SVG filters for any color
+    const hue = getHueFromColor(hexColor)
+    
+    if (mode === 'dark') {
+      return `brightness(0) saturate(100%) invert(70%) sepia(30%) saturate(400%) hue-rotate(${hue}deg) brightness(95%) contrast(91%)`
+    } else {
+      return `brightness(0) saturate(100%) invert(22%) sepia(39%) saturate(579%) hue-rotate(${hue}deg) brightness(95%) contrast(91%)`
+    }
+  }
+
+  // Extract hue from hex color
+  const getHueFromColor = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return 122; // default green hue
+    
+    let r = parseInt(result[1], 16) / 255;
+    let g = parseInt(result[2], 16) / 255;
+    let b = parseInt(result[3], 16) / 255;
+    
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0;
+    
+    if (max !== min) {
+      let d = max - min;
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+        default: break;
+      }
+    }
+    
+    return Math.round(h * 360);
   }
 
   // Detect system theme
@@ -71,7 +104,6 @@ const Navbar = () => {
     if (savedTheme && (savedTheme === 'auto' || savedTheme === 'light' || savedTheme === 'dark')) {
       setTheme(savedTheme)
     } else {
-      // If no saved preference, default to 'auto'
       localStorage.setItem('theme-preference', 'auto')
     }
   }, [])
@@ -102,8 +134,9 @@ const Navbar = () => {
     return () => {
       mediaQuery.removeEventListener('change', handleSystemThemeChange)
     }
-  }, [theme])
+  }, [theme, colorTheme]) // Re-apply when color theme changes
 
+  // Fetch navbar data including color theme
   useEffect(() => {
     const fetchNavbarData = async () => {
       try {
@@ -121,6 +154,7 @@ const Navbar = () => {
         if (data.icons) setIcons(data.icons)
         if (data.navItems) setNavItems(data.navItems)
         if (data.mobileNavItems) setMobileNavItems(data.mobileNavItems)
+        if (data.colorTheme) setColorTheme(data.colorTheme)
         
         setLoading(false)
       } catch (err) {
