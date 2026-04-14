@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import MenuSvg from "../assets/svg/menu.svg"
+import CloseSvg from "../assets/svg/close.svg"
 import { useLanguage } from '../context/LanguageContext.jsx'
 
 const Navbar = () => {
@@ -12,157 +14,105 @@ const Navbar = () => {
   const [icons, setIcons] = useState({})
   const [navItems, setNavItems] = useState([])
   const [mobileNavItems, setMobileNavItems] = useState([])
-  const [selectedColor, setSelectedColor] = useState('#1F4A44')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Helper functions
-  const lighten = (color, percent) => {
-    const num = parseInt(color.replace("#", ""), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = Math.min(255, (num >> 16) + amt);
-    const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
-    const B = Math.min(255, (num & 0x0000FF) + amt);
-    return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
-  };
-
-  const darken = (color, percent) => {
-    const num = parseInt(color.replace("#", ""), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = Math.max(0, (num >> 16) - amt);
-    const G = Math.max(0, ((num >> 8) & 0x00FF) - amt);
-    const B = Math.max(0, (num & 0x0000FF) - amt);
-    return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
-  };
-
-  const getHue = (hex) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return 122;
-    let r = parseInt(result[1], 16) / 255;
-    let g = parseInt(result[2], 16) / 255;
-    let b = parseInt(result[3], 16) / 255;
-    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h = 0;
-    if (max !== min) {
-      let d = max - min;
-      switch (max) {
-        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-        case g: h = ((b - r) / d + 2) / 6; break;
-        case b: h = ((r - g) / d + 4) / 6; break;
-        default: break;
-      }
-    }
-    return Math.round(h * 360);
-  };
-
-  // Apply colors based on theme and selected color
-  const applyColors = (themeMode, baseColor) => {
+  // Apply theme to root element
+  const applyTheme = (themeMode) => {
     const root = document.documentElement
-    const color = baseColor || selectedColor
-    
-    if (themeMode === 'dark') {
-      const darkGreen = lighten(color, 30);
-      const darkLime = darken(color, 85);
-      const darkGradient = `linear-gradient(180deg, ${lighten(color, 20)} 0%, ${darken(color, 30)} 100%)`;
-      const darkFilter = `brightness(0) saturate(100%) invert(70%) sepia(30%) saturate(400%) hue-rotate(${getHue(color)}deg) brightness(95%) contrast(91%)`;
-      
-      root.style.setProperty('--green-color', darkGreen)
-      root.style.setProperty('--lime-color', darkLime)
-      root.style.setProperty('--green-gradient-primary', darkGradient)
-      root.style.setProperty('--green-filter-color', darkFilter)
-      
-      root.style.setProperty('--a-green', darkGreen)
-      root.style.setProperty('--a-green-dark', darken(color, 45))
-      root.style.setProperty('--a-green-light', lighten(color, 20))
-      root.style.setProperty('--a-lime', darkLime)
-      root.style.setProperty('--a-lime-dark', darken(color, 75))
-      root.style.setProperty('--a-success', darkGreen)
-      root.style.setProperty('--a-success-bg', darkLime)
-    } else {
-      const lightGreen = color;
-      const lightLime = lighten(color, 75);
-      const lightGradient = `linear-gradient(180deg, ${lighten(color, 30)} 0%, ${color} 100%)`;
-      const lightFilter = `brightness(0) saturate(100%) invert(22%) sepia(39%) saturate(579%) hue-rotate(${getHue(color)}deg) brightness(95%) contrast(91%)`;
-      const glowGreen = `0 0 20px rgba(${parseInt(color.slice(1,3), 16)}, ${parseInt(color.slice(3,5), 16)}, ${parseInt(color.slice(5,7), 16)}, 0.5)`;
-      
-      root.style.setProperty('--green-color', lightGreen)
-      root.style.setProperty('--lime-color', lightLime)
-      root.style.setProperty('--green-gradient-primary', lightGradient)
-      root.style.setProperty('--green-filter-color', lightFilter)
-      root.style.setProperty('--glow-green', glowGreen)
-      
-      root.style.setProperty('--a-green', lightGreen)
-      root.style.setProperty('--a-green-dark', darken(color, 15))
-      root.style.setProperty('--a-green-light', lighten(color, 20))
-      root.style.setProperty('--a-lime', lightLime)
-      root.style.setProperty('--a-lime-dark', lighten(color, 65))
-      root.style.setProperty('--a-success', lightGreen)
-      root.style.setProperty('--a-success-bg', lightLime)
-    }
-    
-    // Theme-agnostic variables
-    root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
-    root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
-    root.style.setProperty('--drop-shadow-soft-hover', 'drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45))')
     
     if (themeMode === 'dark') {
       root.style.setProperty('--black-color', '#ffffff')
       root.style.setProperty('--white-color', '#000000')
-      root.style.setProperty('--black-filter', 'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)')
-      root.style.setProperty('--white-filter', 'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)')
-    } else {
+      root.style.setProperty('--green-color', '#2b655d')
+      root.style.setProperty('--lime-color', '#1a2a28')
+      root.style.setProperty('--green-filter-color', 'brightness(0) saturate(100%) invert(70%) sepia(30%) saturate(400%) hue-rotate(122deg) brightness(95%) contrast(91%)')
+      root.style.setProperty('--green-gradient-primary', 'linear-gradient(180deg, #1a4a44 0%, #0f302a 100%)')
+      root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
+      root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
+      root.style.setProperty('--drop-shadow-soft-hover', 'drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45))')
+      root.style.setProperty(
+        '--black-filter',
+        'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)'
+      )
+      root.style.setProperty(
+        '--white-filter',
+        'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)'
+      )
+    } else if (themeMode === 'light') {
       root.style.setProperty('--black-color', '#000000')
       root.style.setProperty('--white-color', '#ffffff')
-      root.style.setProperty('--black-filter', 'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)')
-      root.style.setProperty('--white-filter', 'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)')
+      root.style.setProperty('--green-color', '#1F4A44')
+      root.style.setProperty('--lime-color', '#F2FDFB')
+      root.style.setProperty('--green-filter-color', 'brightness(0) saturate(100%) invert(22%) sepia(39%) saturate(579%) hue-rotate(122deg) brightness(95%) contrast(91%)')
+      root.style.setProperty('--green-gradient-primary', 'linear-gradient(180deg, #2b655d 0%, #1F4A44 100%)')
+      root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
+      root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
+      root.style.setProperty('--drop-shadow-soft-hover', 'drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45))')
+      root.style.setProperty(
+        '--black-filter',
+        'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)'
+      )
+      root.style.setProperty(
+        '--white-filter',
+        'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)'
+      )
     }
   }
 
+  // Detect system theme
   const getSystemTheme = () => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
 
-  // Load saved theme
+  // Load saved theme from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme-preference')
     if (savedTheme && (savedTheme === 'auto' || savedTheme === 'light' || savedTheme === 'dark')) {
       setTheme(savedTheme)
     } else {
+      // If no saved preference, default to 'auto'
       localStorage.setItem('theme-preference', 'auto')
     }
   }, [])
 
-  // Handle theme + color changes
+  // Handle theme changes
   useEffect(() => {
     const handleThemeChange = () => {
       if (theme === 'auto') {
-        applyColors(getSystemTheme(), selectedColor)
+        const systemTheme = getSystemTheme()
+        applyTheme(systemTheme)
       } else {
-        applyColors(theme, selectedColor)
+        applyTheme(theme)
       }
     }
+
     handleThemeChange()
-    
+
+    // Listen for system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleSystemThemeChange = () => {
       if (theme === 'auto') {
-        applyColors(getSystemTheme(), selectedColor)
+        applyTheme(getSystemTheme())
       }
     }
-    mediaQuery.addEventListener('change', handleSystemThemeChange)
-    return () => mediaQuery.removeEventListener('change', handleSystemThemeChange)
-  }, [theme, selectedColor])
 
-  // Fetch navbar data including selectedColor - FIXED URL
+    mediaQuery.addEventListener('change', handleSystemThemeChange)
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleSystemThemeChange)
+    }
+  }, [theme])
+
   useEffect(() => {
     const fetchNavbarData = async () => {
       try {
         setLoading(true)
-        // FIXED: Use correct raw GitHub URL
-        const response = await fetch('https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/main/src/data/navbar-data.json')
+        const timestamp = new Date().getTime()
+        const response = await fetch(`https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/refs/heads/main/src/data/navbar-data.json?_=${timestamp}`)
         
         if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.status}`)
+          throw new Error('Failed to fetch navbar data')
         }
         
         const data = await response.json()
@@ -171,7 +121,6 @@ const Navbar = () => {
         if (data.icons) setIcons(data.icons)
         if (data.navItems) setNavItems(data.navItems)
         if (data.mobileNavItems) setMobileNavItems(data.mobileNavItems)
-        if (data.selectedColor) setSelectedColor(data.selectedColor)
         
         setLoading(false)
       } catch (err) {
@@ -190,11 +139,14 @@ const Navbar = () => {
         setScrolled(window.scrollY > 50)
       }
     }
+    
     const handleResize = () => {
       setIsDesktop(window.innerWidth > 1024)
     }
+
     window.addEventListener('scroll', handleScroll)
     window.addEventListener('resize', handleResize)
+    
     return () => {
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', handleResize)
@@ -206,24 +158,33 @@ const Navbar = () => {
   const scrollFourTimes = (id) => {
     const section = document.getElementById(id)
     if (!section) return
+
     if (window.scrollTimeouts) {
       window.scrollTimeouts.forEach(timeout => clearTimeout(timeout))
     }
+    
     window.scrollTimeouts = []
+
     for (let i = 0; i < 7; i++) {
       const timeoutId = setTimeout(() => {
         section.scrollIntoView({ 
           behavior: 'smooth', 
           block: window.innerWidth > 1024 ? 'end' : 'start'
         })
+        
         if (i === 6 && window.innerWidth < 1024) {
           setTimeout(() => {
-            window.scrollBy({ top: -110, behavior: 'smooth' })
+            window.scrollBy({
+              top: -110,
+              behavior: 'smooth'
+            })
           }, 50)
         }
       }, i * 200)
+      
       window.scrollTimeouts.push(timeoutId)
     }
+
     setMenuOpen(false)
   }
 
@@ -341,6 +302,7 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* Mobile Menu */}
       <div className={`mobile-menu-fixed ${menuOpen ? 'open' : ''}`}>
         <div className="mobile-menu-content">
           {mobileNavItems.map((item) => (
@@ -348,6 +310,7 @@ const Navbar = () => {
               {item.label[language]}
             </p>
           ))}
+
           <div className="mobile-menu-bottom">
             <div className="Navbar-i18n">
               <img
@@ -407,6 +370,7 @@ const Navbar = () => {
           <img className='bgPattern' src={icons.bgPattern} alt="background pattern" />
         </div>
       </div>
+
       {menuOpen && (
         <div className="mobile-backdrop" onClick={() => setMenuOpen(false)} />
       )}
