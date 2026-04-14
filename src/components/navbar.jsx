@@ -100,6 +100,7 @@ const Navbar = () => {
       root.style.setProperty('--a-success-bg', lightLime)
     }
     
+    // Theme-agnostic variables
     root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
     root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
     root.style.setProperty('--drop-shadow-soft-hover', 'drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.45))')
@@ -121,6 +122,7 @@ const Navbar = () => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
 
+  // Load saved theme
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme-preference')
     if (savedTheme && (savedTheme === 'auto' || savedTheme === 'light' || savedTheme === 'dark')) {
@@ -130,6 +132,7 @@ const Navbar = () => {
     }
   }, [])
 
+  // Handle theme + color changes
   useEffect(() => {
     const handleThemeChange = () => {
       if (theme === 'auto') {
@@ -150,15 +153,13 @@ const Navbar = () => {
     return () => mediaQuery.removeEventListener('change', handleSystemThemeChange)
   }, [theme, selectedColor])
 
-  // Fetch navbar data - FIXED WITH CORS PROXY
+  // Fetch navbar data including selectedColor - FIXED URL
   useEffect(() => {
     const fetchNavbarData = async () => {
       try {
         setLoading(true)
-        // Use corsproxy.io to bypass GitHub blocking
-        const proxyUrl = 'https://corsproxy.io/?'
-        const targetUrl = 'https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/main/src/data/navbar-data.json'
-        const response = await fetch(proxyUrl + encodeURIComponent(targetUrl))
+        // FIXED: Use correct raw GitHub URL
+        const response = await fetch('https://raw.githubusercontent.com/kenanmusali/ByNaghiyev-Backend/main/src/data/navbar-data.json')
         
         if (!response.ok) {
           throw new Error(`Failed to fetch: ${response.status}`)
