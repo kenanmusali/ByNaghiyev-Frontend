@@ -1218,6 +1218,29 @@ opacity: 0.5;
 
 }
 
+.CategoryItem img{
+filter: var(--green-filter);
+}
+
+.Footer-Group {
+    position: relative;
+}
+.Footer-Group::after {
+     content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    /* background-color: var(--green-color);   */
+    background-color: var(--green-color);  
+    opacity: 0.5;
+    mix-blend-mode:color;            
+z-index: 0;
+    pointer-events: none; 
+}
+
 .CategoryItem {
     display: flex;
     flex-direction: column;
