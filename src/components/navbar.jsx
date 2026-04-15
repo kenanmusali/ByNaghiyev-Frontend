@@ -41,7 +41,7 @@ const Navbar = () => {
     if (themeMode === 'dark') {
       root.style.setProperty('--black-color', '#ffffff')
             root.style.setProperty('--dim-bg-color', '#0a0a0a')
-
+            root.style.setProperty('--invert-filter', 'invert(1)')
       root.style.setProperty('--white-color', '#000000')
       root.style.setProperty('--lime-color', '#1a2a28')
       root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
@@ -54,6 +54,7 @@ const Navbar = () => {
       root.style.setProperty('--dim-bg-color', '#ffffff')
 
       root.style.setProperty('--white-color', '#ffffff')
+      root.style.setProperty('--invert-filter', 'invert(0)')
       root.style.setProperty('--lime-color', '#F2FDFB')
       root.style.setProperty('--shadow-soft', '0px 2px 5px 0px rgba(0, 0, 0, 0.15)')
       root.style.setProperty('--drop-shadow-soft', 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))')
