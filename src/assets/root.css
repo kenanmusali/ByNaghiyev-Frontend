@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
-    --black-color: #000000;
+    --black-color: #1d1d1d;
+    --dim-bg-color: #000000;
     --white-color: #ffffff;
     --green-color: #1F4A44;
     --lime-color: #F2FDFB;
@@ -32,7 +33,7 @@ body {
     position: relative;
     min-height: 100vh;
     margin: 0;
-    background-color: var(--white-color);
+    background-color: var(--dim-bg-color);
     z-index: 0;
     /* ensure pseudo-element is behind content */
 
@@ -47,7 +48,7 @@ body::before {
     width: 100%;
     height: 100%;
 
-    background-image: url(./svg/bg-body.svg);
+    background-image: url(./svg/bg-body0.svg);
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -1722,11 +1723,11 @@ button:hover {
 }
 
 .blog-modal-close {
-    position: sticky;
+position: sticky !important;
     top: 20px;
     right: 20px;
     float: right;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--green-color);
     border: none;
     border-radius: 50%;
     width: 40px;
@@ -1737,6 +1738,7 @@ button:hover {
     justify-content: center;
     margin: 20px;
     z-index: 10;
+    margin-bottom: -80px;
 }
 
 .blog-modal-close:hover {
@@ -1806,10 +1808,14 @@ button:hover {
     font-weight: 400;
 }
 
+.blog-modal-gallery img{
+    border-radius: 10px;
+
+}
 .blog-modal-gallery {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-
+gap: 25px;
     margin-top: 40px;
 }
 
