@@ -89,10 +89,12 @@ const Products = () => {
     // Get current items to display with circular array
     const getVisibleProducts = () => {
         if (products.length === 0) return [];
+        // Filter out hidden products
+        const visibleProducts = products.filter(product => !product.hidden);
         const visible = [];
         for (let i = 0; i < itemsToShow; i++) {
-            const index = (startIndex + i) % products.length;
-            visible.push(products[index]);
+            const index = (startIndex + i) % visibleProducts.length;
+            visible.push(visibleProducts[index]);
         }
         return visible;
     };
@@ -133,6 +135,26 @@ const Products = () => {
         };
     }, []);
 
+    // Handle Instagram order navigation
+    const handleInstagramOrder = (product, e) => {
+        e.stopPropagation();
+        if (product.instagramUrl && product.instagramUrl.trim() !== '') {
+            window.open(product.instagramUrl, '_blank', 'noopener,noreferrer');
+        } else {
+            alert('Instagram link not available for this product');
+        }
+    };
+
+    // Handle eBay order navigation
+    const handleEbayOrder = (product, e) => {
+        e.stopPropagation();
+        if (product.ebayUrl && product.ebayUrl.trim() !== '') {
+            window.open(product.ebayUrl, '_blank', 'noopener,noreferrer');
+        } else {
+            alert('eBay link not available for this product');
+        }
+    };
+
     if (loading) {
         return (
             <div className='About-Group FreeResponsive-Group Section-Slot' id='products'>
@@ -169,11 +191,11 @@ const Products = () => {
 
                     <div className="ItemStacks">
                         {visibleProducts.map((product, idx) => {
-                            const globalIndex = (startIndex + idx) % products.length;
+                            const globalIndex = product.id;
                             
                             return (
                                 <div 
-                                    key={`${product.id}-${globalIndex}`} 
+                                    key={`${product.id}-${idx}`} 
                                     className="ItemStack"
                                     onClick={() => handleItemClick(globalIndex)}
                                     ref={activeIndex === globalIndex ? activeRef : null}
@@ -197,9 +219,17 @@ const Products = () => {
                                     {activeIndex === globalIndex && (
                                         <div className="ItemStackActive">
                                             <div className="ItemStackActiveItem">
-                                                <img src={product.instagramIcon} alt="Instagram" />
+                                                <img 
+                                                    src={product.instagramIcon} 
+                                                    alt="Instagram"
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={(e) => handleInstagramOrder(product, e)}
+                                                />
                                                 <div className="ButtonInteract">
-                                                    <button className='ButtonOn'>
+                                                    <button 
+                                                        className='ButtonOn'
+                                                        onClick={(e) => handleInstagramOrder(product, e)}
+                                                    >
                                                         <p>{orderInstagramText[language]}</p>
                                                     </button>
                                                 </div>
@@ -207,9 +237,17 @@ const Products = () => {
                                             </div>
                                             <div className="hr-line-y"></div>
                                             <div className="ItemStackActiveItem">
-                                                <img src={product.ebayIcon} alt="eBay" />
+                                                <img 
+                                                    src={product.ebayIcon} 
+                                                    alt="eBay"
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={(e) => handleEbayOrder(product, e)}
+                                                />
                                                 <div className="ButtonInteract">
-                                                    <button className='ButtonOn'>
+                                                    <button 
+                                                        className='ButtonOn'
+                                                        onClick={(e) => handleEbayOrder(product, e)}
+                                                    >
                                                         <p>{orderEbayText[language]}</p>
                                                     </button>
                                                 </div>
