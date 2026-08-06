@@ -10,14 +10,50 @@ const adjustHex = (hex, amount) => {
   return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')
 }
 
+const DEFAULT_GREEN = '#1F4A44'
+let baseGreenColor = DEFAULT_GREEN
+
+const LIGHT_GREEN_FILTER =
+  'brightness(0) saturate(100%) invert(22%) sepia(39%) saturate(579%) hue-rotate(122deg) brightness(95%) contrast(91%)'
+const LIGHT_GREEN_FILTER_SOFT =
+  'brightness(0) saturate(100%) invert(26%) sepia(6%) saturate(3529%) hue-rotate(122deg) brightness(88%) contrast(91%)'
+const DARK_GREEN_FILTER =
+  'brightness(0) saturate(100%) invert(48%) sepia(18%) saturate(650%) hue-rotate(122deg) brightness(98%) contrast(88%)'
+const DARK_GREEN_FILTER_SOFT =
+  'brightness(0) saturate(100%) invert(52%) sepia(12%) saturate(700%) hue-rotate(122deg) brightness(98%) contrast(88%)'
+
 /* Apply --green-color (and gradient) to the document root */
-const applyGreenColor = (hex) => {
-  if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) return
+const applyGreenColor = (hex, themeMode) => {
+  if (hex && /^#[0-9a-fA-F]{6}$/.test(hex)) {
+    baseGreenColor = hex
+  }
+
   const root = document.documentElement
-  root.style.setProperty('--green-color', hex)
+  const mode =
+    themeMode ||
+    root.dataset.theme ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+
+  const activeGreen = mode === 'dark' ? adjustHex(baseGreenColor, 58) : baseGreenColor
+
+  root.style.setProperty('--green-color', activeGreen)
   root.style.setProperty(
     '--green-gradient-primary',
-    `linear-gradient(180deg, ${adjustHex(hex, 30)} 0%, ${hex} 100%)`
+    `linear-gradient(180deg, ${adjustHex(activeGreen, 30)} 0%, ${activeGreen} 100%)`
+  )
+  /* Navbar keeps the original brand green in every theme */
+  root.style.setProperty('--navbar-green-color', baseGreenColor)
+  root.style.setProperty(
+    '--navbar-green-gradient',
+    `linear-gradient(180deg, ${adjustHex(baseGreenColor, 30)} 0%, ${baseGreenColor} 100%)`
+  )
+  root.style.setProperty(
+    '--green-filter-color',
+    mode === 'dark' ? DARK_GREEN_FILTER : LIGHT_GREEN_FILTER
+  )
+  root.style.setProperty(
+    '--green-filter',
+    mode === 'dark' ? DARK_GREEN_FILTER_SOFT : LIGHT_GREEN_FILTER_SOFT
   )
 }
 
@@ -38,6 +74,7 @@ const Navbar = () => {
   /* ── Theme helpers ── */
   const applyTheme = (themeMode) => {
     const root = document.documentElement
+    root.dataset.theme = themeMode
     if (themeMode === 'dark') {
       root.style.setProperty('--black-color', '#ffffff')
             root.style.setProperty('--dim-bg-color', '#0a0a0a')
@@ -62,6 +99,8 @@ const Navbar = () => {
       root.style.setProperty('--black-filter', 'brightness(0) saturate(100%) invert(0%) sepia(20%) saturate(2546%) hue-rotate(235deg) brightness(84%) contrast(100%)')
       root.style.setProperty('--white-filter', 'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7434%) hue-rotate(16deg) brightness(110%) contrast(101%)')
     }
+
+    applyGreenColor(null, themeMode)
   }
 
   const getSystemTheme = () =>
@@ -103,7 +142,11 @@ const Navbar = () => {
 
         /* ── Apply brand green color from JSON ── */
         if (data.themeColors?.greenColor) {
-          applyGreenColor(data.themeColors.greenColor)
+          const pref = localStorage.getItem('theme-preference') || 'auto'
+          const mode = pref === 'auto'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : pref
+          applyGreenColor(data.themeColors.greenColor, mode)
         }
 
         if (data.logos)          setLogos(data.logos)

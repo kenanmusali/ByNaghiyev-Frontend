@@ -8,6 +8,8 @@ const Products = () => {
     const [startIndex, setStartIndex] = useState(0);
     const [activeIndex, setActiveIndex] = useState(null);
     const [itemsToShow, setItemsToShow] = useState(4);
+    const [slideAnim, setSlideAnim] = useState('');
+    const [isSliding, setIsSliding] = useState(false);
     const [products, setProducts] = useState([]);
     const [sectionTitle, setSectionTitle] = useState({ en: 'Products', az: 'Məhsullar' });
     const [orderNowText, setOrderNowText] = useState({ en: 'Order Now', az: 'Sifariş Et' });
@@ -18,6 +20,7 @@ const Products = () => {
     const [error, setError] = useState(null);
     const activeRef = useRef(null);
     const timeoutRef = useRef(null);
+    const slideTimeoutRef = useRef(null);
 
     useEffect(() => {
         const fetchProductsData = async () => {
@@ -68,23 +71,44 @@ const Products = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Handle next slide - proper circular sliding
-    const nextSlide = () => {
-        setStartIndex((prevIndex) => {
-            const nextIndex = prevIndex + 1;
-            return nextIndex >= products.length ? 0 : nextIndex;
-        });
+    const runSlide = (direction, updateIndex) => {
+        if (isSliding || products.length === 0) return;
+
+        setIsSliding(true);
         setActiveIndex(null);
+        setSlideAnim(direction === 'next' ? 'anim-next' : 'anim-prev');
+        updateIndex();
+
+        if (slideTimeoutRef.current) clearTimeout(slideTimeoutRef.current);
+        slideTimeoutRef.current = setTimeout(() => {
+            setSlideAnim('');
+            setIsSliding(false);
+        }, 480);
     };
 
-    // Handle previous slide - proper circular sliding
-    const prevSlide = () => {
-        setStartIndex((prevIndex) => {
-            const prevIndexCalc = prevIndex - 1;
-            return prevIndexCalc < 0 ? products.length - 1 : prevIndexCalc;
+    const nextSlide = () => {
+        runSlide('next', () => {
+            setStartIndex((prevIndex) => {
+                const nextIndex = prevIndex + 1;
+                return nextIndex >= products.length ? 0 : nextIndex;
+            });
         });
-        setActiveIndex(null);
     };
+
+    const prevSlide = () => {
+        runSlide('prev', () => {
+            setStartIndex((prevIndex) => {
+                const prevIndexCalc = prevIndex - 1;
+                return prevIndexCalc < 0 ? products.length - 1 : prevIndexCalc;
+            });
+        });
+    };
+
+    useEffect(() => {
+        return () => {
+            if (slideTimeoutRef.current) clearTimeout(slideTimeoutRef.current);
+        };
+    }, []);
 
     // Get current items to display with circular array
     const getVisibleProducts = () => {
@@ -185,18 +209,24 @@ const Products = () => {
 
             <div className="Slider-Group">
                 <div className="SubSlider">
-                    <button className='ButtonOff2' onClick={prevSlide}>
-                        <img src={LeftSvg} alt="Left" />
+                    <button
+                        className={`ButtonOff2 Slider-Nav Slider-Nav--prev${isSliding ? ' is-busy' : ''}`}
+                        onClick={prevSlide}
+                        aria-label="Previous products"
+                        disabled={isSliding}
+                    >
+                        <img src={LeftSvg} alt="" />
                     </button>
 
-                    <div className="ItemStacks">
+                    <div className={`ItemStacks ${slideAnim}`} key={`products-${startIndex}`}>
                         {visibleProducts.map((product, idx) => {
                             const globalIndex = product.id;
                             
                             return (
                                 <div 
-                                    key={`${product.id}-${idx}`} 
+                                    key={`${product.id}-${startIndex}-${idx}`} 
                                     className="ItemStack"
+                                    style={{ '--card-index': idx }}
                                     onClick={() => handleItemClick(globalIndex)}
                                     ref={activeIndex === globalIndex ? activeRef : null}
                                 >
@@ -260,8 +290,13 @@ const Products = () => {
                         })}
                     </div>
 
-                    <button className='ButtonOff2' onClick={nextSlide}>
-                        <img src={RightSvg} alt="Right" />
+                    <button
+                        className={`ButtonOff2 Slider-Nav Slider-Nav--next${isSliding ? ' is-busy' : ''}`}
+                        onClick={nextSlide}
+                        aria-label="Next products"
+                        disabled={isSliding}
+                    >
+                        <img src={RightSvg} alt="" />
                     </button>
                 </div>
             </div>

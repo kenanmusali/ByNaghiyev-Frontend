@@ -9,6 +9,8 @@ const Blogs = () => {
     const [startIndex, setStartIndex] = useState(0);
     const [activeIndex, setActiveIndex] = useState(null);
     const [itemsToShow, setItemsToShow] = useState(4);
+    const [slideAnim, setSlideAnim] = useState('');
+    const [isSliding, setIsSliding] = useState(false);
     const [selectedBlog, setSelectedBlog] = useState(null);
     const [blogs, setBlogs] = useState([]);
     const [sectionTitle, setSectionTitle] = useState({ en: 'Blogs', az: 'Bloqlar' });
@@ -18,6 +20,7 @@ const { language } = useLanguage();
     const [error, setError] = useState(null);
     const activeRef = useRef(null);
     const timeoutRef = useRef(null);
+    const slideTimeoutRef = useRef(null);
     const modalRef = useRef(null);
 
 
@@ -66,21 +69,44 @@ const { language } = useLanguage();
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const nextSlide = () => {
-        setStartIndex((prevIndex) => {
-            const nextIndex = prevIndex + 1;
-            return nextIndex >= blogs.length ? 0 : nextIndex;
-        });
+    const runSlide = (direction, updateIndex) => {
+        if (isSliding || blogs.length === 0) return;
+
+        setIsSliding(true);
         setActiveIndex(null);
+        setSlideAnim(direction === 'next' ? 'anim-next' : 'anim-prev');
+        updateIndex();
+
+        if (slideTimeoutRef.current) clearTimeout(slideTimeoutRef.current);
+        slideTimeoutRef.current = setTimeout(() => {
+            setSlideAnim('');
+            setIsSliding(false);
+        }, 480);
+    };
+
+    const nextSlide = () => {
+        runSlide('next', () => {
+            setStartIndex((prevIndex) => {
+                const nextIndex = prevIndex + 1;
+                return nextIndex >= blogs.length ? 0 : nextIndex;
+            });
+        });
     };
 
     const prevSlide = () => {
-        setStartIndex((prevIndex) => {
-            const prevIndexCalc = prevIndex - 1;
-            return prevIndexCalc < 0 ? blogs.length - 1 : prevIndexCalc;
+        runSlide('prev', () => {
+            setStartIndex((prevIndex) => {
+                const prevIndexCalc = prevIndex - 1;
+                return prevIndexCalc < 0 ? blogs.length - 1 : prevIndexCalc;
+            });
         });
-        setActiveIndex(null);
     };
+
+    useEffect(() => {
+        return () => {
+            if (slideTimeoutRef.current) clearTimeout(slideTimeoutRef.current);
+        };
+    }, []);
 
     const getVisibleBlogs = () => {
         if (blogs.length === 0) return [];
@@ -158,18 +184,24 @@ const { language } = useLanguage();
 
                 <div className="Slider-Group">
                     <div className="SubSlider">
-                        <button className='ButtonOff2' onClick={prevSlide}>
-                            <img src={LeftSvg} alt="Left" />
+                        <button
+                            className={`ButtonOff2 Slider-Nav Slider-Nav--prev${isSliding ? ' is-busy' : ''}`}
+                            onClick={prevSlide}
+                            aria-label="Previous blogs"
+                            disabled={isSliding}
+                        >
+                            <img src={LeftSvg} alt="" />
                         </button>
 
-                        <div className="ItemStacks">
+                        <div className={`ItemStacks ${slideAnim}`} key={`blogs-${startIndex}`}>
                             {visibleBlogs.map((blog, idx) => {
                                 const globalIndex = (startIndex + idx) % blogs.length;
                                 
                                 return (
                                     <div 
-                                        key={`${blog.id}-${globalIndex}`} 
+                                        key={`${blog.id}-${startIndex}-${idx}`} 
                                         className="ItemStack"
+                                        style={{ '--card-index': idx }}
                                         onClick={() => handleBlogClick(blog)}
                                         ref={activeIndex === globalIndex ? activeRef : null}
                                     >
@@ -194,8 +226,13 @@ const { language } = useLanguage();
                             })}
                         </div>
 
-                        <button className='ButtonOff2' onClick={nextSlide}>
-                            <img src={RightSvg} alt="Right" />
+                        <button
+                            className={`ButtonOff2 Slider-Nav Slider-Nav--next${isSliding ? ' is-busy' : ''}`}
+                            onClick={nextSlide}
+                            aria-label="Next blogs"
+                            disabled={isSliding}
+                        >
+                            <img src={RightSvg} alt="" />
                         </button>
                     </div>
                 </div>

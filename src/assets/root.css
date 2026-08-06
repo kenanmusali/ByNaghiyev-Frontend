@@ -8,6 +8,8 @@
     --lime-color: #F2FDFB;
     --green-filter-color: brightness(0) saturate(100%) invert(22%) sepia(39%) saturate(579%) hue-rotate(122deg) brightness(95%) contrast(91%);
     --green-gradient-primary: linear-gradient(180deg, #2b655d 0%, #1F4A44 100%);
+    --navbar-green-color: #1F4A44;
+    --navbar-green-gradient: linear-gradient(180deg, #2b655d 0%, #1F4A44 100%);
     --black-gradient-primary: linear-gradient(180deg, rgba(0, 0, 0, 0.61) 0%, rgba(255, 255, 255, 0) 100%);
     --shadow-soft: 0px 2px 5px 0px rgba(0, 0, 0, 0.15);
     --drop-shadow-soft: drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15));
@@ -84,7 +86,7 @@ body::before {
     }
 
     .Navbar-Group.scrolled {
-        background: var(--green-gradient-primary);
+        background: var(--navbar-green-gradient);
         box-shadow: var(--shadow-soft);
         mask-image: none;
     }
@@ -93,7 +95,7 @@ body::before {
 /* Mobile styles (below 1200px) */
 @media (max-width: 1200px) {
     .Navbar-Group {
-        background: var(--green-gradient-primary);
+        background: var(--navbar-green-gradient);
         box-shadow: var(--shadow-soft);
     }
 }
@@ -464,7 +466,7 @@ body::before {
     top: 0px;
     left: 0;
     width: 100%;
-    background: var(--green-gradient-primary);
+    background: var(--navbar-green-gradient);
     padding: 40px;
     z-index: 1000;
     box-shadow: var(--shadow-soft);
@@ -579,7 +581,92 @@ display: flex;
 .FreeResponsive-Group {
     height: fit-content !important;
     padding-bottom: 100px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+    box-sizing: border-box;
+}
 
+.FreeResponsive-Group .Slider-Group {
+    width: 100%;
+    max-width: 100%;
+    padding-inline: clamp(12px, 3vw, 40px);
+    gap: 0;
+    box-sizing: border-box;
+}
+
+.FreeResponsive-Group .SubSlider {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    gap: clamp(8px, 1.5vw, 24px);
+    box-sizing: border-box;
+}
+
+.FreeResponsive-Group .SubSlider > .ButtonOff2,
+.FreeResponsive-Group .Slider-Nav {
+    flex-shrink: 0;
+}
+
+.FreeResponsive-Group .Slider-Nav.is-busy,
+.FreeResponsive-Group .Slider-Nav:disabled {
+    opacity: 0.55;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Card slide transitions */
+@keyframes itemSlideNext {
+    from {
+        opacity: 0;
+        transform: translateX(48px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes itemSlidePrev {
+    from {
+        opacity: 0;
+        transform: translateX(-48px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.FreeResponsive-Group .ItemStacks.anim-next .ItemStack {
+    animation: itemSlideNext 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--card-index, 0) * 0.06s);
+}
+
+.FreeResponsive-Group .ItemStacks.anim-prev .ItemStack {
+    animation: itemSlidePrev 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--card-index, 0) * 0.06s);
+}
+
+.FreeResponsive-Group .ItemStack {
+    transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.35s ease,
+        border-color 0.3s ease;
+}
+
+.FreeResponsive-Group .ItemStack:hover {
+    scale: 1;
+    transform: translateY(-8px);
+    box-shadow: 0 18px 36px rgba(31, 74, 68, 0.14);
+}
+
+.FreeResponsive-Group .ItemStack > img:first-of-type {
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.FreeResponsive-Group .ItemStack:hover > img:first-of-type {
+    transform: scale(1.04);
 }
 
 
@@ -1069,6 +1156,13 @@ button:hover {
         margin-top: 60px;
     }
 
+    .ItemStack {
+        flex: 1 1 0;
+        width: auto;
+        max-width: none;
+        min-width: 0;
+    }
+
     .ItemStack img {
 
         width: 100%;
@@ -1095,6 +1189,23 @@ button:hover {
         gap: 0px !important;
     }
 
+    .FreeResponsive-Group .Slider-Group {
+        padding-inline: 12px;
+    }
+
+    .FreeResponsive-Group .SubSlider {
+        gap: 8px;
+    }
+
+    .FreeResponsive-Group .ItemStack:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .ItemStacks {
+        gap: 16px;
+    }
+
     .About-Group {
         padding-bottom: 5rem;
     }
@@ -1117,6 +1228,13 @@ button:hover {
         text-transform: uppercase;
         font-weight: 800;
         margin-bottom: 1.5rem;
+    }
+
+    .ItemStack {
+        flex: 1 1 0;
+        width: auto;
+        max-width: none;
+        min-width: 0;
     }
 
     .ItemStack img {
@@ -1147,9 +1265,17 @@ button:hover {
         padding-inline: 80px;
     }
 
+    .FreeResponsive-Group .Slider-Group {
+        padding-inline: clamp(16px, 2.5vw, 32px);
+    }
+
     .SubSlider {
         margin-bottom: 40px;
 
+    }
+
+    .ItemStacks {
+        gap: 20px;
     }
 
     .ItemStack img {
@@ -1274,10 +1400,14 @@ button:hover {
 
 .ItemStacks {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
-    gap: 30px;
-    width: 80%;
+    gap: 24px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: 1;
+    box-sizing: border-box;
 
     /* margin-top: 80px; */
     corner-shape: unset !important;
@@ -1286,9 +1416,15 @@ button:hover {
 .ItemStack {
     display: flex;
     flex-direction: column;
-    align-self: center;
+    align-self: stretch;
     position: relative;
-    justify-content: center;
+    justify-content: flex-start;
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    height: auto;
+    box-sizing: border-box;
     border-radius: 0px 0px 38px 38px;
     -webkit-border-radius: 0px 0px 38px 38px;
     -moz-border-radius: 0px 0px 38px 38px;
@@ -1307,12 +1443,13 @@ button:hover {
     border: 1px solid var(--green-color);
 }
 
-.ItemStack img {
+.ItemStack > img:first-of-type {
 
     width: 100%;
-    min-width: 320px !important;
-    max-width: 320px !important;
+    max-width: 100%;
+    min-width: 0;
     height: 22rem;
+    flex-shrink: 0;
     object-fit: cover;
 
 }
@@ -1338,12 +1475,26 @@ button:hover {
     padding: 10px 20px 20px 20px;
     font-weight: 500;
     color: var(--black-color);
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
 }
 
 .ItemStack h2 {
     padding: 20px 20px 0 20px;
     font-weight: 800;
     color: var(--green-color);
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+.ItemStack > .ButtonInteract {
+    width: 100%;
+    padding: 15px;
+    margin-top: auto;
 }
 
 .ButtonInteract {
@@ -1888,4 +2039,8 @@ gap: 25px;
     font-weight: 500;
     padding: 20px 20px 0 20px;
     margin-bottom: -10px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
 }

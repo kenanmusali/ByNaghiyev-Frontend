@@ -102,6 +102,7 @@ const Footer = () => {
                         ))}
                     </div>
                 </div>
+                {/* Newsletter temporarily hidden
                 <div className="SlotSection">
                     <h2>{newsletterTitle[language]}</h2>
                     <div className="Socials-Group">
@@ -118,6 +119,7 @@ const Footer = () => {
                         </form>
                     </div>
                 </div>
+                */}
             </div>
             <div className='Footer-Section'>
                 <p>{copyrightText[language]}</p>
