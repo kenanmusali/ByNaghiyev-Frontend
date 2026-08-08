@@ -61,8 +61,7 @@ const Navbar = () => {
   const { language, setLanguage } = useLanguage()
   const [theme, setTheme] = useState('auto')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024)
+  const [langOpen, setLangOpen] = useState(false)
 
   const [logos, setLogos] = useState({})
   const [icons, setIcons] = useState({})
@@ -165,23 +164,6 @@ const Navbar = () => {
     fetchNavbarData()
   }, [])
 
-  /* Scroll + resize */
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerWidth > 1024) setScrolled(window.scrollY > 50)
-    }
-    const handleResize = () => setIsDesktop(window.innerWidth > 1024)
-
-    window.addEventListener('scroll', handleScroll)
-    window.addEventListener('resize', handleResize)
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
-  const logoToShow = (!isDesktop || (isDesktop && scrolled)) ? logos.logo : logos.logoText
-
   const scrollFourTimes = (id) => {
     const section = document.getElementById(id)
     if (!section) return
@@ -206,11 +188,62 @@ const Navbar = () => {
   }
 
   const handleNavClick = (e, id) => { e.preventDefault(); e.stopPropagation(); scrollFourTimes(id) }
-  const handleLanguageChange = (newLang) => setLanguage(newLang)
+  const handleLanguageChange = (newLang) => {
+    setLanguage(newLang)
+    setLangOpen(false)
+  }
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme)
     localStorage.setItem('theme-preference', newTheme)
   }
+
+  useEffect(() => {
+    if (!langOpen) return
+    const closeLang = () => setLangOpen(false)
+    document.addEventListener('click', closeLang)
+    return () => document.removeEventListener('click', closeLang)
+  }, [langOpen])
+
+  const langLabel = language === 'az' ? 'AZE' : 'ENG'
+
+  const LanguagePicker = ({ onSelect }) => (
+    <div className={`Navbar-i18n ${langOpen ? 'open' : ''}`} onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        className="Navbar-i18n-toggle"
+        aria-expanded={langOpen}
+        aria-haspopup="listbox"
+        onClick={() => setLangOpen((open) => !open)}
+      >
+        <span>{langLabel}</span>
+        <svg className="Navbar-i18n-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {langOpen && (
+        <div className="Navbar-i18n-menu" role="listbox">
+          <button
+            type="button"
+            role="option"
+            aria-selected={language === 'az'}
+            className={language === 'az' ? 'lang-option-active' : ''}
+            onClick={() => onSelect('az')}
+          >
+            AZE
+          </button>
+          <button
+            type="button"
+            role="option"
+            aria-selected={language === 'en'}
+            className={language === 'en' ? 'lang-option-active' : ''}
+            onClick={() => onSelect('en')}
+          >
+            ENG
+          </button>
+        </div>
+      )}
+    </div>
+  )
 
   if (loading) return (
     <div className="Navbar-Group">
@@ -226,7 +259,7 @@ const Navbar = () => {
 
   return (
     <>
-      <div className={`Navbar-Group ${isDesktop && scrolled ? 'scrolled' : ''}`}>
+      <div className="Navbar-Group">
         <div
           className="Navbar-Items-Menu Items-Left"
           onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen) }}
@@ -244,14 +277,11 @@ const Navbar = () => {
         </div>
 
         <p className="Navbar-Items Items-Center" onClick={(e) => handleNavClick(e, 'home')}>
-          <img className="Navbar-Logo" src={logoToShow} alt="logo" />
+          <img className="Navbar-Logo" src={logos.logoText} alt="logo" />
         </p>
 
         <div className="Navbar-Items Items-Right">
-          <div className="Navbar-i18n">
-            <img src={icons.azFlag} onClick={(e) => { e.stopPropagation(); handleLanguageChange('az') }} className={language === 'az' ? 'lang-active' : 'lang-inactive'} alt="AZ" />
-            <img src={icons.enFlag} onClick={(e) => { e.stopPropagation(); handleLanguageChange('en') }} className={language === 'en' ? 'lang-active' : 'lang-inactive'} alt="EN" />
-          </div>
+          <LanguagePicker onSelect={handleLanguageChange} />
           <div className="Navbar-Theme">
             <img src={icons.autoTheme}  onClick={(e) => { e.stopPropagation(); handleThemeChange('auto')  }} className={theme === 'auto'  ? 'theme-active' : 'theme-inactive'} alt="Auto"  />
             <img src={icons.lightTheme} onClick={(e) => { e.stopPropagation(); handleThemeChange('light') }} className={theme === 'light' ? 'theme-active' : 'theme-inactive'} alt="Light" />
@@ -270,9 +300,21 @@ const Navbar = () => {
           ))}
 
           <div className="mobile-menu-bottom">
-            <div className="Navbar-i18n">
-              <img src={icons.azFlag} onClick={(e) => { e.stopPropagation(); handleLanguageChange('az'); setMenuOpen(false) }} className={language === 'az' ? 'lang-active' : 'lang-inactive'} alt="AZ" />
-              <img src={icons.enFlag} onClick={(e) => { e.stopPropagation(); handleLanguageChange('en'); setMenuOpen(false) }} className={language === 'en' ? 'lang-active' : 'lang-inactive'} alt="EN" />
+            <div className="Navbar-i18n-mobile">
+              <button
+                type="button"
+                className={language === 'az' ? 'lang-option-active' : ''}
+                onClick={(e) => { e.stopPropagation(); handleLanguageChange('az'); setMenuOpen(false) }}
+              >
+                AZE
+              </button>
+              <button
+                type="button"
+                className={language === 'en' ? 'lang-option-active' : ''}
+                onClick={(e) => { e.stopPropagation(); handleLanguageChange('en'); setMenuOpen(false) }}
+              >
+                ENG
+              </button>
             </div>
             <div className="Navbar-Theme">
               <img src={icons.autoTheme}  onClick={(e) => { e.stopPropagation(); handleThemeChange('auto');  setMenuOpen(false) }} className={theme === 'auto'  ? 'theme-active' : 'theme-inactive'} alt="Auto"  />

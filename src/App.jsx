@@ -99,13 +99,13 @@ const App = () => {
 
           <ZoomWrapper>
             <ZoomWrapper>
-              <Products />
+              <Blogs />
             </ZoomWrapper>
           </ZoomWrapper>
 
           <ZoomWrapper>
             <ZoomWrapper>
-              <Blogs />
+              <Products />
             </ZoomWrapper>
           </ZoomWrapper>
 
@@ -126,11 +126,11 @@ const App = () => {
           <Category />
 
           <ZoomWrapper>
-            <Products />
+            <Blogs />
           </ZoomWrapper>
 
           <ZoomWrapper>
-            <Blogs />
+            <Products />
           </ZoomWrapper>
 
           <Footer />

@@ -153,6 +153,15 @@ const { language } = useLanguage();
         };
     }, []);
 
+    useEffect(() => {
+        if (!selectedBlog) return
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') closeModal()
+        }
+        document.addEventListener('keydown', onKeyDown)
+        return () => document.removeEventListener('keydown', onKeyDown)
+    }, [selectedBlog])
+
     if (loading) {
         return (
             <div className='About-Group FreeResponsive-Group Section-Slot' id='blogs'>
@@ -238,43 +247,53 @@ const { language } = useLanguage();
                 </div>
             </div>
 
-            {/* Modal Popup */}
             {selectedBlog && (
                 <div className="blog-modal-overlay" onClick={handleModalClickOutside}>
-                    <div className="blog-modal-container" ref={modalRef}>
-                        <button className="blog-modal-close" onClick={closeModal}>
-                            <img src={CloseSvg} alt="Close" />
+                    <div className="blog-modal-container" ref={modalRef} role="dialog" aria-modal="true">
+                        <button className="blog-modal-close" onClick={closeModal} aria-label="Close">
+                            <img src={CloseSvg} alt="" />
                         </button>
-                        
-                        <div className="blog-modal-content">
-                            {/* Hero Image */}
-                            <div className="blog-modal-hero">
-                                <img src={selectedBlog.image} alt={selectedBlog.expandedContent.title[language]} />
-                            </div>
-                            
-                            {/* Title and Meta */}
-                            <div className="blog-modal-header">
-                                <h1>{selectedBlog.expandedContent.title[language]}</h1>
-                                <div className="blog-modal-meta">
-                                    <span>{selectedBlog.time[language]}</span>
-                                    <span>•</span>
-                                    <span>{selectedBlog.name[language]}</span>
+
+                        <div className="blog-modal-frame">
+                            <span className="blog-modal-corner blog-modal-corner--tl" aria-hidden="true" />
+                            <span className="blog-modal-corner blog-modal-corner--tr" aria-hidden="true" />
+                            <span className="blog-modal-corner blog-modal-corner--bl" aria-hidden="true" />
+                            <span className="blog-modal-corner blog-modal-corner--br" aria-hidden="true" />
+
+                            <div className="blog-modal-content">
+                                <div className="blog-modal-hero">
+                                    <img src={selectedBlog.image} alt={selectedBlog.expandedContent.title[language]} />
+                                    <div className="blog-modal-hero-fade" aria-hidden="true" />
                                 </div>
-                            </div>
-                            
-                            {/* Article Content */}
-                            <div className="blog-modal-body">
-                                {selectedBlog.expandedContent.paragraphs[language].map((paragraph, idx) => (
-                                    <p key={idx}>{paragraph}</p>
-                                ))}
-                                
-                                {/* Image Gallery */}
-                                <div className="blog-modal-gallery">
-                                    {selectedBlog.expandedContent.images.map((img, idx) => (
-                                        <div key={idx} className="blog-modal-gallery-item">
-                                            <img src={img} alt={`Gallery ${idx + 1}`} />
-                                        </div>
+
+                                <div className="blog-modal-header">
+                                    <div className="blog-modal-meta">
+                                        <span>{selectedBlog.time[language]}</span>
+                                        <span className="blog-modal-meta-dot" aria-hidden="true" />
+                                        <span>{selectedBlog.name[language]}</span>
+                                    </div>
+                                    <h1>{selectedBlog.expandedContent.title[language]}</h1>
+                                    <div className="blog-modal-ornament" aria-hidden="true">
+                                        <span />
+                                        <span />
+                                        <span />
+                                    </div>
+                                </div>
+
+                                <div className="blog-modal-body">
+                                    {selectedBlog.expandedContent.paragraphs[language].map((paragraph, idx) => (
+                                        <p key={idx}>{paragraph}</p>
                                     ))}
+
+                                    {selectedBlog.expandedContent.images?.length > 0 && (
+                                        <div className="blog-modal-gallery">
+                                            {selectedBlog.expandedContent.images.map((img, idx) => (
+                                                <div key={idx} className="blog-modal-gallery-item">
+                                                    <img src={img} alt="" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

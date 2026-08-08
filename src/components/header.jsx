@@ -124,14 +124,14 @@ const { language } = useLanguage();
     return (
         <div className='Header-Group' id='home'>
             <div className="Header-Text-Group">
-                <button className='ButtonOff' onClick={prevImage}>
+                <button className='ButtonOff Header-Nav Header-Nav--prev' onClick={prevImage}>
                     <img src={LeftSvg} alt="Left" />
                 </button>
 
                 <div className="Text-Group">
                     <p>{headerText.subtitle?.[language] || ''}</p>
                     <h1>{headerText.title?.[language] || ''}</h1>
-                    <div className="Button-Group">
+                    <div className="Button-Group Header-Cta">
                         <button className='ButtonOff'>{buttonTexts.discoverCollection?.[language] || ''}</button>
                         <button className='ButtonOn'>{buttonTexts.orderNow?.[language] || ''}</button>
                     </div>
@@ -149,25 +149,23 @@ const { language } = useLanguage();
                     )}
                 </div>
 
-                <button className='ButtonOff' onClick={nextImage}>
+                <button className='ButtonOff Header-Nav Header-Nav--next' onClick={nextImage}>
                     <img src={RightSvg} alt="Right" />
                 </button>
             </div>
 
             <div className="image-container">
-                {/* Current Image (stays in place) */}
                 <img
                     src={headerImages[currentImageIndex]?.src}
                     alt={headerImages[currentImageIndex]?.alt}
                     className="current-image"
                 />
-                
-                {/* Next Image (slides over) */}
+
                 {isAnimating && headerImages[nextImageIndex] && (
                     <img
                         src={headerImages[nextImageIndex].src}
                         alt={headerImages[nextImageIndex].alt}
-                        className={`next-image slide-from-${slideDirection}`}
+                        className="next-image fade-in"
                         onAnimationEnd={handleAnimationEnd}
                     />
                 )}
